@@ -21,11 +21,11 @@
 </template>
 
 <script setup lang="ts" name="system-user">
-import { ref, reactive } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, reactive, computed } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import { User } from '@/types/user';
-import { fetchUserData } from '@/api';
+import { fetchUserData, createUser, updateUser, deleteUser } from '@/api';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -46,7 +46,8 @@ const handleSearch = () => {
 let columns = ref([
     { type: 'index', label: '序号', width: 55, align: 'center' },
     { prop: 'name', label: '用户名' },
-    { prop: 'phone', label: '手机号' },
+    { prop: 'login_name', label: '登录名' },
+    { prop: 'department', label: '部门' },
     { prop: 'role', label: '角色' },
     { prop: 'operator', label: '操作', width: 250 },
 ])
@@ -58,8 +59,8 @@ const page = reactive({
 const tableData = ref<User[]>([]);
 const getData = async () => {
     const res = await fetchUserData()
-    tableData.value = res.data.list;
-    page.total = res.data.pageTotal;
+    tableData.value = res.data.data.list;
+    page.total = res.data.data.pageTotal;
 };
 getData();
 
@@ -69,28 +70,45 @@ const changePage = (val: number) => {
 };
 
 // 新增/编辑弹窗相关
-let options = ref<FormOption>({
-    labelWidth: '100px',
-    span: 12,
-    list: [
-        { type: 'input', label: '用户名', prop: 'name', required: true },
-        { type: 'input', label: '手机号', prop: 'phone', required: true },
-        { type: 'input', label: '密码', prop: 'password', required: true },
-        { type: 'input', label: '邮箱', prop: 'email', required: true },
-        { type: 'input', label: '角色', prop: 'role', required: true },
-    ]
-})
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref({});
+
+// 动态计算表单配置，编辑时禁用用户名
+const options = computed<FormOption>(() => ({
+    labelWidth: '100px',
+    span: 12,
+    list: [
+        { type: 'input', label: '用户名', prop: 'name', required: true, disabled: isEdit.value },
+        { type: 'input', label: '登录名', prop: 'login_name', required: true },
+        { type: 'input', label: '密码', prop: 'password', required: !isEdit.value },
+        { type: 'input', label: '性别', prop: 'sex' },
+        { type: 'input', label: '角色', prop: 'role', required: true },
+        { type: 'input', label: '部门', prop: 'department', required: true },
+    ]
+}))
+
 const handleEdit = (row: User) => {
     rowData.value = { ...row };
     isEdit.value = true;
     visible.value = true;
 };
-const updateData = () => {
-    closeDialog();
-    getData();
+const updateData = async (formData: any) => {
+    try {
+        if (isEdit.value) {
+            // 更新
+            await updateUser(formData.name, formData);
+            ElMessage.success('更新成功');
+        } else {
+            // 新增
+            await createUser(formData);
+            ElMessage.success('创建成功');
+        }
+        closeDialog();
+        getData();
+    } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '操作失败');
+    }
 };
 
 const closeDialog = () => {
@@ -140,8 +158,21 @@ const handleView = (row: User) => {
 };
 
 // 删除相关
-const handleDelete = (row: User) => {
-    ElMessage.success('删除成功');
+const handleDelete = async (row: User) => {
+    try {
+        await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        });
+        await deleteUser(row.name);
+        ElMessage.success('删除成功');
+        getData();
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            ElMessage.error(error.response?.data?.message || '删除失败');
+        }
+    }
 }
 </script>
 
