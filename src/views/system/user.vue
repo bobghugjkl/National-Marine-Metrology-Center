@@ -38,8 +38,11 @@ const query = reactive({
 const searchOpt = ref<FormOptionList[]>([
     { type: 'input', label: '用户名：', prop: 'name' }
 ])
+
+// 搜索按钮：根据输入的用户名搜索
 const handleSearch = () => {
-    changePage(1);
+    page.index = 1;  // 重置到第一页
+    getData();
 };
 
 // 表格相关
@@ -57,10 +60,27 @@ const page = reactive({
     total: 0,
 })
 const tableData = ref<User[]>([]);
+
+// 获取数据：支持搜索参数
 const getData = async () => {
-    const res = await fetchUserData()
-    tableData.value = res.data.data.list;
-    page.total = res.data.data.pageTotal;
+    try {
+        // 构建查询参数
+        const params: any = {};
+        if (query.name) {
+            params.name = query.name;
+        }
+        
+        const res = await fetchUserData(params);
+        tableData.value = res.data.data.list;
+        page.total = res.data.data.pageTotal;
+        
+        // 如果搜索结果为空，显示提示
+        if (tableData.value.length === 0 && query.name) {
+            ElMessage.warning(`未找到用户名包含"${query.name}"的用户`);
+        }
+    } catch (error: any) {
+        ElMessage.error('获取数据失败');
+    }
 };
 getData();
 

@@ -34,7 +34,7 @@
                     <el-link type="primary" @click="$router.push('/reset-pwd')">忘记密码</el-link>
                 </div>
                 <el-button class="login-btn" type="primary" size="large" @click="submitForm(login)">登录</el-button>
-                <p class="login-tips">Tips : 用户名和密码随便填。</p>
+                <p class="login-tips">Tips : 请使用已注册的账号登录，或点击下方"立即注册"创建新账号。</p>
                 <p class="login-text">
                     没有账号？<el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
                 </p>
@@ -50,6 +50,7 @@ import { usePermissStore } from '@/store/permiss';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
+import { loginUser } from '@/api';
 
 interface LoginInfo {
     username: string;
@@ -78,22 +79,55 @@ const rules: FormRules = {
 };
 const permiss = usePermissStore();
 const login = ref<FormInstance>();
-const submitForm = (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid: boolean) => {
+    formEl.validate(async (valid: boolean) => {
         if (valid) {
-            ElMessage.success('登录成功');
-            localStorage.setItem('vuems_name', param.username);
-            const keys = permiss.defaultList[param.username == 'admin' ? 'admin' : 'user'];
-            permiss.handleSet(keys);
-            router.push('/');
-            if (checked.value) {
-                localStorage.setItem('login-param', JSON.stringify(param));
-            } else {
-                localStorage.removeItem('login-param');
+            try {
+                // 调用后端登录接口
+                const res = await loginUser({
+                    username: param.username,
+                    password: param.password
+                });
+                
+                if (res.data.code === 200) {
+                    ElMessage.success(res.data.message || '登录成功');
+                    
+                    // 存储用户信息
+                    const userData = res.data.data;
+                    localStorage.setItem('vuems_name', userData.username);
+                    localStorage.setItem('vuems_user', JSON.stringify(userData));
+                    localStorage.setItem('userId', userData.id);  // ← 保存用户ID（用于用户隔离）
+                    
+                    // 设置权限
+                    const keys = permiss.defaultList[userData.role === '管理员' || userData.role === 'super_admin' ? 'admin' : 'user'];
+                    permiss.handleSet(keys);
+                    
+                    // 记住密码
+                    if (checked.value) {
+                        localStorage.setItem('login-param', JSON.stringify(param));
+                    } else {
+                        localStorage.removeItem('login-param');
+                    }
+                    
+                    // 跳转到首页
+                    router.push('/');
+                } else {
+                    ElMessage.error(res.data.message || '登录失败');
+                }
+            } catch (error: any) {
+                // 统一显示"用户名或密码不正确"
+                console.log('登录错误:', error);
+                let errorMsg = '用户名或密码不正确';
+                
+                if (error?.response?.data?.message) {
+                    errorMsg = error.response.data.message;
+                }
+                
+                ElMessage.error(errorMsg);
             }
         } else {
-            ElMessage.error('登录失败');
+            ElMessage.error('请填写完整信息');
             return false;
         }
     });

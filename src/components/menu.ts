@@ -20,12 +20,6 @@ export const menuData: Menus[] = [
                 title: '新建任务',
             },
             {
-                id: '02',
-                pid: '0',
-                index: '/system-role',
-                title: '打开任务',
-            },
-            {
                 id: '03',
                 pid: '0',
                 index: '/system-menu',
@@ -43,7 +37,7 @@ export const menuData: Menus[] = [
             {
                 id: '11',
                 pid: '1',
-                index: '/system-user',
+                index: '/system-role',
                 title: '航前质量监督检查记录',
             },
             {

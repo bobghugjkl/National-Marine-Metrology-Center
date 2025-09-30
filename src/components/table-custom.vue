@@ -47,15 +47,17 @@
                     <template #default="{ row, column, $index }" v-if="!item.type">
                         <slot :name="item.prop" :rows="row" :index="$index">
                             <template v-if="item.prop == 'operator'">
-                                <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
-                                    查看
-                                </el-button>
-                                <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
-                                    编辑
-                                </el-button>
-                                <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
-                                    删除
-                                </el-button>
+                                <div class="operator-buttons">
+                                    <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
+                                        查看
+                                    </el-button>
+                                    <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
+                                        编辑
+                                    </el-button>
+                                    <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
+                                        删除
+                                    </el-button>
+                                </div>
                             </template>
                             <span v-else-if="item.formatter">
                                 {{ item.formatter(row[item.prop]) }}
@@ -202,6 +204,18 @@ const getIndex = (index: number) => {
     font-size: 18px;
     cursor: pointer;
     color: #676767;
+}
+
+.operator-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.operator-buttons .el-button {
+    margin: 0;
 }
 </style>
 <style>

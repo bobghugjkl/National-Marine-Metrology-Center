@@ -9,10 +9,11 @@ export const fetchData = () => {
 };
 
 // 用户数据
-export const fetchUserData = () => {
+export const fetchUserData = (params?: any) => {
     return request({
         url: '/users',
-        method: 'get'
+        method: 'get',
+        params  // 传递查询参数
     });
 };
 
@@ -101,5 +102,25 @@ export const deleteTask = (task_name: string) => {
     return request({
         url: `/tasks/${encodeURIComponent(task_name)}`,
         method: 'delete'
+    });
+};
+
+// ==================== 登录注册接口 ====================
+
+// 登录
+export const loginUser = (data: any) => {
+    return request({
+        url: '/login',
+        method: 'post',
+        data
+    });
+};
+
+// 注册
+export const registerUser = (data: any) => {
+    return request({
+        url: '/register',
+        method: 'post',
+        data
     });
 };

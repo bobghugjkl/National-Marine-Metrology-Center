@@ -27,19 +27,28 @@ const routes: RouteRecordRaw[] = [
                 path: '/system-user',
                 name: 'system-user',
                 meta: {
-                    title: '用户管理',
+                    title: '任务管理',
                     permiss: '11',
                 },
-                component: () => import(/* webpackChunkName: "system-user" */ '../views/system/user.vue'),
+                component: () => import(/* webpackChunkName: "task-manage" */ '../views/VoyageInfo/task-manage.vue'),
             },
             {
                 path: '/system-role',
                 name: 'system-role',
                 meta: {
-                    title: '角色管理',
+                    title: '航前质量监督检查记录表',
                     permiss: '12',
                 },
-                component: () => import(/* webpackChunkName: "system-role" */ '../views/system/role.vue'),
+                component: () => import(/* webpackChunkName: "inspection-task-list" */ '../views/preVoyageInspection/inspection-task-list.vue'),
+            },
+            {
+                path: '/inspection-record/:task_name',
+                name: 'inspection-record',
+                meta: {
+                    title: '检查记录详情',
+                    permiss: '12',
+                },
+                component: () => import(/* webpackChunkName: "inspection-record" */ '../views/preVoyageInspection/inspection-record.vue'),
             },
             {
                 path: '/system-menu',
