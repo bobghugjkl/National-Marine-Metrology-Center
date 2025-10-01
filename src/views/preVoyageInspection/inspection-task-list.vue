@@ -60,12 +60,8 @@ const page = reactive({
 // 获取任务列表
 const getData = async () => {
     try {
-        // 携带当前用户ID（用户隔离）
-        const userId = localStorage.getItem('userId');
+        // 不再需要手动传递 user_id，后端会从 JWT token 中获取
         const params: any = {};
-        if (userId) {
-            params.user_id = userId;
-        }
         
         const res = await fetchTasks(params);
         tableData.value = res.data.data.list;
@@ -83,6 +79,10 @@ const changePage = (val: number) => {
 
 // 跳转到检查记录页面
 const goToInspection = (task_name: string) => {
+    console.log('准备跳转到检查记录页面，任务名称:', task_name);
+    console.log('当前用户token:', localStorage.getItem('token'));
+    console.log('当前用户角色:', localStorage.getItem('vuems_name'));
+
     router.push({
         name: 'inspection-record',
         params: { task_name }

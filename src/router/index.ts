@@ -292,14 +292,27 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     NProgress.start();
     const role = localStorage.getItem('vuems_name');
+    const token = localStorage.getItem('token');
     const permiss = usePermissStore();
 
+    console.log('路由守卫检查:', {
+        to: to.path,
+        from: from.path,
+        role,
+        token: token ? `${token.substring(0, 20)}...` : '无',
+        noAuth: to.meta.noAuth,
+        permiss: to.meta.permiss
+    });
+
     if (!role && to.meta.noAuth !== true) {
+        console.log('用户未登录，跳转到登录页');
         next('/login');
     } else if (typeof to.meta.permiss == 'string' && !permiss.key.includes(to.meta.permiss)) {
+        console.log('用户权限不足，跳转到403页面');
         // 如果没有权限，则进入403
         next('/403');
     } else {
+        console.log('路由守卫通过，继续访问');
         next();
     }
 });

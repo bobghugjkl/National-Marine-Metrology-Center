@@ -76,8 +76,11 @@ let columns = ref([
     { prop: 'project', label: '专项名称' },
     { prop: 'task_code', label: '航次任务编号', width: 150 },
     { prop: 'undertake', label: '航次承担单位' },
+    { prop: 'participant', label: '航次参与单位' },
     { prop: 'ship', label: '调查船', width: 150 },
     { prop: 'leader', label: '任务负责人', width: 130 },
+    { prop: 'chief_scientist', label: '首席科学家' },
+    { prop: 'superintendent', label: '随船监督员' },
     { prop: 'operator', label: '操作', width: 220 },
 ])
 const page = reactive({
@@ -92,11 +95,7 @@ const getData = async () => {
     try {
         const params: any = {};
         
-        // 携带当前用户ID（用户隔离）
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            params.user_id = userId;
-        }
+        // 不再需要手动传递 user_id，后端会从 JWT token 中获取
         
         if (query.task_name) {
             params.task_name = query.task_name;
@@ -130,47 +129,47 @@ const options = computed<FormOption>(() => ({
     labelWidth: '130px',
     span: 12,
     list: [
-        { 
-            type: 'input', 
-            label: '航次任务名称', 
-            prop: 'task_name', 
-            required: true, 
+        {
+            type: 'input',
+            label: '航次任务名称',
+            prop: 'task_name',
+            required: !isEdit.value,
             disabled: isEdit.value,
             placeholder: '请输入航次任务名称'
         },
-        { 
-            type: 'input', 
-            label: '专项名称', 
+        {
+            type: 'input',
+            label: '专项名称',
             prop: 'project',
             placeholder: '请输入专项名称'
         },
-        { 
-            type: 'input', 
-            label: '航次任务编号', 
+        {
+            type: 'input',
+            label: '航次任务编号',
             prop: 'task_code',
             placeholder: '请输入航次任务编号'
         },
-        { 
-            type: 'input', 
-            label: '航次承担单位', 
+        {
+            type: 'input',
+            label: '航次承担单位',
             prop: 'undertake',
             placeholder: '请输入承担单位'
         },
-        { 
-            type: 'input', 
-            label: '航次参与单位', 
+        {
+            type: 'input',
+            label: '航次参与单位',
             prop: 'participant',
             placeholder: '请输入参与单位'
         },
-        { 
-            type: 'input', 
-            label: '调查船', 
+        {
+            type: 'input',
+            label: '调查船',
             prop: 'ship',
             placeholder: '请输入调查船名称'
         },
-        { 
-            type: 'input', 
-            label: '任务负责人', 
+        {
+            type: 'input',
+            label: '任务负责人',
             prop: 'leader',
             placeholder: '请输入负责人'
         },
@@ -230,23 +229,34 @@ const closeDialog = () => {
 
 const updateData = async (formData: any) => {
     try {
-        // 携带当前用户ID（用户隔离）
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            formData.user_id = parseInt(userId);
-        }
+        console.log('提交数据:', formData);
+        console.log('是否编辑模式:', isEdit.value);
+        
+        // 不再需要手动传递 user_id，后端会从 JWT token 中获取
         
         if (isEdit.value) {
-            await updateTaskNew(formData.task_name, formData);
+            const res = await updateTaskNew(formData.task_name, formData);
+            console.log('更新响应:', res);
             ElMessage.success('更新成功');
         } else {
-            await createTaskNew(formData);
+            const res = await createTaskNew(formData);
+            console.log('创建响应:', res);
             ElMessage.success('创建成功');
         }
         closeDialog();
         getData();
     } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || '操作失败');
+        console.error('操作失败:', error);
+        console.error('错误详情:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.response?.data?.message
+        });
+        
+        // 显示详细的错误信息
+        const errorMsg = error.response?.data?.message || error.message || '操作失败';
+        ElMessage.error(errorMsg);
     }
 };
 

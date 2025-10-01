@@ -4,12 +4,13 @@
 from flask import Blueprint, request, jsonify
 from models import User
 from config.database import db
+from utils.jwt_utils import generate_token
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api')
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """用户登录"""
+    """用户登录（使用JWT认证）"""
     try:
         data = request.json
         username = data.get('username')
@@ -25,6 +26,9 @@ def login():
         if not user or user.password != password:
             return jsonify({'code': 401, 'message': '用户名或密码不正确'}), 401
 
+        # 生成 JWT token
+        token = generate_token(user.id, user.name, user.role)
+
         return jsonify({
             'code': 200,
             'message': '登录成功',
@@ -33,7 +37,8 @@ def login():
                 'username': user.name,
                 'login_name': user.login_name,
                 'role': user.role,
-                'department': user.department
+                'department': user.department,
+                'token': token  # 返回 token
             }
         })
     except Exception as e:

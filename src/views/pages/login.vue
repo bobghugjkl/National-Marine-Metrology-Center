@@ -97,7 +97,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     const userData = res.data.data;
                     localStorage.setItem('vuems_name', userData.username);
                     localStorage.setItem('vuems_user', JSON.stringify(userData));
-                    localStorage.setItem('userId', userData.id);  // ← 保存用户ID（用于用户隔离）
+                    localStorage.setItem('userId', userData.id);  // 保存用户ID（用于显示）
+                    localStorage.setItem('token', userData.token);  // ← 保存 JWT token（用于认证）
                     
                     // 设置权限
                     const keys = permiss.defaultList[userData.role === '管理员' || userData.role === 'super_admin' ? 'admin' : 'user'];

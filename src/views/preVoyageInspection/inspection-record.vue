@@ -235,32 +235,74 @@ const getData = async () => {
     }
 
     try {
+        console.log('正在获取检查记录数据，任务名称:', task_name);
         const res = await fetchInspectionByTask(task_name);
+        console.log('API响应:', res);
+
         if (res.data.code === 200) {
+            console.log('获取数据成功:', res.data.data);
             Object.assign(formData, res.data.data);
         } else {
+            console.error('API返回错误:', res.data);
             ElMessage.error(res.data.message || '获取检查记录失败');
         }
     } catch (error: any) {
-        ElMessage.error('获取检查记录失败');
+        console.error('获取检查记录失败:', error);
+        console.error('错误响应:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            headers: error.response?.headers
+        });
+
+        if (error.response?.status === 401) {
+            ElMessage.error('登录已过期，请重新登录');
+            // 跳转到登录页
+            router.push('/login');
+        } else if (error.response?.status === 403) {
+            ElMessage.error('无权限访问此检查记录');
+        } else if (error.response?.status === 404) {
+            ElMessage.error('检查记录不存在');
+        } else if (error.response?.status === 500) {
+            ElMessage.error('服务器内部错误，请联系管理员');
+        } else {
+            ElMessage.error(`获取检查记录失败: ${error.message || '未知错误'}`);
+        }
     }
 };
 
 // 保存数据
 const saveData = async () => {
     try {
+        console.log('正在保存检查记录数据:', formData);
         const res = await updateInspection(formData.task_name, formData);
+        console.log('保存API响应:', res);
+
         if (res.data.code === 200) {
+            console.log('保存成功');
             ElMessage.success('保存成功');
             // 保存成功后自动返回上一级
             setTimeout(() => {
                 goBack();
             }, 500);
         } else {
+            console.error('保存API返回错误:', res.data);
             ElMessage.error(res.data.message || '保存失败');
         }
     } catch (error: any) {
-        ElMessage.error('保存失败');
+        console.error('保存检查记录失败:', error);
+        if (error.response?.status === 401) {
+            ElMessage.error('登录已过期，请重新登录');
+            router.push('/login');
+        } else if (error.response?.status === 403) {
+            ElMessage.error('无权限修改此检查记录');
+        } else if (error.response?.status === 404) {
+            ElMessage.error('检查记录不存在');
+        } else if (error.response?.status === 500) {
+            ElMessage.error('服务器内部错误，请联系管理员');
+        } else {
+            ElMessage.error(`保存失败: ${error.message || '未知错误'}`);
+        }
     }
 };
 

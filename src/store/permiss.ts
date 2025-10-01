@@ -46,9 +46,21 @@ export const usePermissStore = defineStore('permiss', {
             user: ['0', '1', '11', '12', '13'],
         };
         const username = localStorage.getItem('vuems_name');
-        console.log(username);
+        const userData = localStorage.getItem('vuems_user');
+        let userRole = 'user'; // 默认普通用户
+
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                userRole = user.role === '管理员' || user.role === 'super_admin' ? 'admin' : 'user';
+            } catch (e) {
+                console.error('解析用户数据失败:', e);
+            }
+        }
+
+        console.log('权限检查:', { username, userRole });
         return {
-            key: (username == 'admin' ? defaultList.admin : defaultList.user) as string[],
+            key: (userRole === 'admin' ? defaultList.admin : defaultList.user) as string[],
             defaultList,
         };
     },

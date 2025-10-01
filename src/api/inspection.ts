@@ -3,14 +3,10 @@
  */
 import request from '../utils/request';
 
-const inspectionRequest = request.create({
-    baseURL: 'http://localhost:5000/api', // 统一后端端口5000
-    timeout: 5000
-});
-
+// 直接使用主请求实例，它已经配置了token拦截器
 // 获取所有检查记录
 export const fetchInspections = () => {
-    return inspectionRequest({
+    return request({
         url: '/inspections',
         method: 'get'
     });
@@ -18,15 +14,15 @@ export const fetchInspections = () => {
 
 // 根据任务名称获取检查记录
 export const fetchInspectionByTask = (task_name: string) => {
-    return inspectionRequest({
-        url: `/inspections/${encodeURIComponent(task_name)}`,
+    return request({
+        url: `/inspections/task/${encodeURIComponent(task_name)}`,
         method: 'get'
     });
 };
 
 // 更新检查记录
 export const updateInspection = (task_name: string, data: any) => {
-    return inspectionRequest({
+    return request({
         url: `/inspections/${encodeURIComponent(task_name)}`,
         method: 'put',
         data
@@ -35,7 +31,7 @@ export const updateInspection = (task_name: string, data: any) => {
 
 // 创建检查记录
 export const createInspection = (data: any) => {
-    return inspectionRequest({
+    return request({
         url: '/inspections',
         method: 'post',
         data
@@ -44,7 +40,7 @@ export const createInspection = (data: any) => {
 
 // 删除检查记录
 export const deleteInspection = (task_name: string) => {
-    return inspectionRequest({
+    return request({
         url: `/inspections/${encodeURIComponent(task_name)}`,
         method: 'delete'
     });

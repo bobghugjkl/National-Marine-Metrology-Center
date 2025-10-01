@@ -10,10 +10,14 @@ from controllers import user_bp, task_bp, inspection_bp, auth_bp
 def create_app():
     """创建 Flask 应用"""
     app = Flask(__name__)
-    
+
+    # 设置JSON编码，确保中文字符正确显示
+    app.config['JSON_AS_ASCII'] = False
+    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
     # 初始化数据库
     init_db(app)
-    
+
     # 初始化 CORS
     init_cors(app)
     
@@ -69,15 +73,15 @@ if __name__ == '__main__':
     app = create_app()
     
     print("=" * 60)
-    print("🚀 统一后端服务正在启动...")
-    print("📍 服务地址: http://localhost:5000")
-    print("📂 架构模式: MVC")
+    print("[启动] 统一后端服务正在启动...")
+    print("[地址] 服务地址: http://localhost:5000")
+    print("[架构] 架构模式: MVC + JWT认证")
     print("=" * 60)
     print("\n提供的服务:")
     print("  - 用户管理 (/api/users)")
-    print("  - 登录注册 (/api/login, /api/register)")
-    print("  - 任务管理 (/api/tasks)")
-    print("  - 检查记录管理 (/api/inspections)")
+    print("  - 登录注册 (/api/login, /api/register) - 返回JWT Token")
+    print("  - 任务管理 (/api/tasks) - 需要JWT认证")
+    print("  - 检查记录管理 (/api/inspections) - 需要JWT认证")
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=5000, debug=True)
