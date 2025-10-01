@@ -43,9 +43,9 @@ export const menuData: Menus[] = [
             {
                 id: '12',
                 pid: '1',
-                index: '/preVoyageInspection/personnelQualifications',
+                index: '/preVoyageInspection/personnel-qualifications',
                 title: '外业调查人员资质',
-               
+
             },
             {
                 id: '13',

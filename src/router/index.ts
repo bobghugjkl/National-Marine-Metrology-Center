@@ -69,13 +69,13 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "table" */ '../views/table/basetable.vue'),
             },
             {
-                path: '/preVoyageInspection/personnelQualifications',
-                name: 'prepersonnelQualifications',
+                path: '/preVoyageInspection/personnel-qualifications',
+                name: 'personnel-qualifications',
                 meta: {
-                    title: '人员资质',
-                    permiss: '31',
+                    title: '外业调查人员资质',
+                    permiss: '12',
                 },
-                component: () => import(/* webpackChunkName: "table" */ '../views//preVoyageInspection/personnelQualifications.vue'),
+                component: () => import(/* webpackChunkName: "personnel-qualifications" */ '../views/preVoyageInspection/personnel-qualifications-list.vue'),
             },
             {
                 path: '/table-editor',
