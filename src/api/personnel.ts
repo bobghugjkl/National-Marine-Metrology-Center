@@ -1,19 +1,23 @@
 import request from '../utils/request';
 
 /**
- * 外业调查人员资质管理API接口
+ * 获取外业调查人员资质列表
+ * @param params 查询参数
+ * @returns 
  */
-
-// 获取人员资质列表
-export const fetchPersonnelQualifications = (params?: any) => {
+export const getPersonnelQualifications = (params?: any) => {
     return request({
         url: '/personnel-qualifications',
         method: 'get',
-        params  // 传递查询参数，如分页、搜索等
+        params
     });
 };
 
-// 创建人员资质记录
+/**
+ * 创建外业调查人员资质记录
+ * @param data 人员资质数据
+ * @returns 
+ */
 export const createPersonnelQualification = (data: any) => {
     return request({
         url: '/personnel-qualifications',
@@ -22,7 +26,12 @@ export const createPersonnelQualification = (data: any) => {
     });
 };
 
-// 更新人员资质记录
+/**
+ * 更新外业调查人员资质记录
+ * @param id 记录ID
+ * @param data 人员资质数据
+ * @returns 
+ */
 export const updatePersonnelQualification = (id: number, data: any) => {
     return request({
         url: `/personnel-qualifications/${id}`,
@@ -31,7 +40,11 @@ export const updatePersonnelQualification = (id: number, data: any) => {
     });
 };
 
-// 删除人员资质记录
+/**
+ * 删除外业调查人员资质记录
+ * @param id 记录ID
+ * @returns 
+ */
 export const deletePersonnelQualification = (id: number) => {
     return request({
         url: `/personnel-qualifications/${id}`,
@@ -39,53 +52,31 @@ export const deletePersonnelQualification = (id: number) => {
     });
 };
 
-// 获取单个人员资质详情
-export const fetchPersonnelQualificationDetail = (id: number) => {
-    return request({
-        url: `/personnel-qualifications/${id}`,
-        method: 'get'
-    });
-};
-
-// 批量删除人员资质记录
+/**
+ * 批量删除外业调查人员资质记录
+ * @param ids ID数组
+ * @returns 
+ */
 export const batchDeletePersonnelQualifications = (ids: number[]) => {
     return request({
-        url: '/personnel-qualifications/batch-delete',
-        method: 'post',
+        url: '/personnel-qualifications/batch',
+        method: 'delete',
         data: { ids }
     });
 };
 
-// 下载Excel模板
-export const downloadExcelTemplate = () => {
+/**
+ * 上传附件
+ * @param formData 包含文件的FormData
+ * @returns 
+ */
+export const uploadAttachment = (formData: FormData) => {
     return request({
-        url: '/personnel-qualifications/template',
-        method: 'get',
-        responseType: 'blob'  // 返回文件流
-    });
-};
-
-// 导入Excel文件
-export const importExcelFile = (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return request({
-        url: '/personnel-qualifications/import',
+        url: '/personnel-qualifications/upload',
         method: 'post',
         data: formData,
         headers: {
             'Content-Type': 'multipart/form-data'
         }
-    });
-};
-
-// 导出Excel文件
-export const exportPersonnelQualifications = (params?: any) => {
-    return request({
-        url: '/personnel-qualifications/export',
-        method: 'get',
-        params,
-        responseType: 'blob'  // 返回文件流
     });
 };

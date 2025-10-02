@@ -1,8 +1,11 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 const service: AxiosInstance = axios.create({
+    // 恢复原始baseURL配置
     baseURL: 'http://localhost:5000/api',
-    timeout: 5000
+    timeout: 10000,
+    // 允许跨域请求携带凭证
+    withCredentials: true
 });
 
 service.interceptors.request.use(
@@ -37,9 +40,10 @@ service.interceptors.response.use(
             data: response.data
         });
         if (response.status === 200) {
-            return response;
+            // 返回响应数据，前端组件需要访问response.data
+            return response.data;
         } else {
-            Promise.reject();
+            return Promise.reject(new Error('请求失败'));
         }
     },
     (error: AxiosError) => {

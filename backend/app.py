@@ -5,11 +5,11 @@ Flask 应用启动入口
 from flask import Flask, jsonify
 from config.database import init_db
 from config.cors import init_cors
-from controllers import user_bp, task_bp, inspection_bp, auth_bp
+from controllers import user_bp, task_bp, inspection_bp, auth_bp, personnel_bp
 
 def create_app():
     """创建 Flask 应用"""
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static', static_url_path='/static')
 
     # 设置JSON编码，确保中文字符正确显示
     app.config['JSON_AS_ASCII'] = False
@@ -26,6 +26,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(task_bp)
     app.register_blueprint(inspection_bp)
+    app.register_blueprint(personnel_bp)
     
     # 健康检查接口
     @app.route('/api/health', methods=['GET'])

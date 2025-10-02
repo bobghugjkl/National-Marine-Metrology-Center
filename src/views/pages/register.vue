@@ -97,12 +97,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     login_name: param.username,  // 使用用户名作为登录名
                     department: '未分配'
                 });
-                
-                if (res.data.code === 200) {
-                    ElMessage.success(res.data.message || '注册成功，请登录');
+
+                console.log('注册响应:', res);
+
+                if (res && res.code === 200) {
+                    ElMessage.success(res.message || '注册成功，请登录');
                     router.push('/login');
                 } else {
-                    ElMessage.error(res.data.message || '注册失败');
+                    ElMessage.error(res?.message || '注册失败');
                 }
             } catch (error: any) {
                 ElMessage.error(error.response?.data?.message || '注册失败，请重试');

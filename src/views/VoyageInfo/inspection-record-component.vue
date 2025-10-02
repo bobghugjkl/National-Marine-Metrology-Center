@@ -240,12 +240,12 @@ const getData = async () => {
         const res = await fetchInspectionByTask(props.taskName);
         console.log('API响应:', res);
 
-        if (res.data.code === 200) {
-            console.log('获取数据成功:', res.data.data);
-            Object.assign(formData, res.data.data);
+        if (res.code === 200) {
+            console.log('获取数据成功:', res.data);
+            Object.assign(formData, res.data);
         } else {
-            console.error('API返回错误:', res.data);
-            ElMessage.error(res.data.message || '获取检查记录失败');
+            console.error('API返回错误:', res);
+            ElMessage.error(res.message || '获取检查记录失败');
         }
     } catch (error: any) {
         console.error('获取检查记录失败:', error);
@@ -277,13 +277,13 @@ const saveData = async () => {
         const res = await updateInspection(formData.task_name, formData);
         console.log('保存API响应:', res);
 
-        if (res.data.code === 200) {
+        if (res.code === 200) {
             console.log('保存成功');
             ElMessage.success('保存成功');
             emit('save-success');
         } else {
-            console.error('保存API返回错误:', res.data);
-            ElMessage.error(res.data.message || '保存失败');
+            console.error('保存API返回错误:', res);
+            ElMessage.error(res.message || '保存失败');
         }
     } catch (error: any) {
         console.error('保存检查记录失败:', error);

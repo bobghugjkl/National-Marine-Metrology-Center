@@ -100,19 +100,44 @@ const getData = async () => {
         const params: any = {};
         
         // 不再需要手动传递 user_id，后端会从 JWT token 中获取
+        console.log('开始获取任务数据...');
         
         if (query.task_name) {
             params.task_name = query.task_name;
         }
         
+        // 检查本地存储中的token
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        console.log('当前认证状态:', {
+            hasToken: !!token,
+            hasUserId: !!userId,
+            tokenPrefix: token ? token.substring(0, 20) + '...' : '无'
+        });
+
+        // 调用API
+        console.log('发送API请求:', params);
         const res = await fetchTasksNew(params);
-        tableData.value = res.data.data.list;
-        page.total = res.data.data.pageTotal;
+        console.log('API响应:', res);
         
-        if (tableData.value.length === 0 && query.task_name) {
-            ElMessage.warning(`未找到任务名称包含"${query.task_name}"的任务`);
+        if (res && res.code === 200) {
+            console.log('获取任务数据成功:', res.data);
+            tableData.value = res.data.list;
+            page.total = res.data.pageTotal;
+            
+            if (tableData.value.length === 0 && query.task_name) {
+                ElMessage.warning(`未找到任务名称包含"${query.task_name}"的任务`);
+            }
+        } else {
+            console.error('API返回错误:', res);
+            ElMessage.error(res?.message || '获取数据失败');
         }
     } catch (error: any) {
+        console.error('获取任务数据失败:', error);
+        if (error.response) {
+            console.error('错误状态:', error.response.status);
+            console.error('错误数据:', error.response.data);
+        }
         ElMessage.error('获取数据失败');
     }
 };

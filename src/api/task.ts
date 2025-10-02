@@ -1,12 +1,7 @@
 import request from '../utils/request';
 
-// 任务管理 API（使用统一后端端口 5000）
-const taskRequest = (config: any) => {
-    return request({
-        ...config,
-        baseURL: 'http://localhost:5000/api'
-    });
-};
+// 任务管理 API（直接使用主请求实例）
+const taskRequest = request;
 
 // 获取任务列表
 export const fetchTasksNew = (params?: any) => {

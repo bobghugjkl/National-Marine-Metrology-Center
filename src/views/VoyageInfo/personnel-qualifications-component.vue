@@ -124,7 +124,7 @@
                     <span v-else>{{ row.remark }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="attachment" label="附件" width="120" align="center">
+            <el-table-column prop="attachment" label="附件" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-upload
@@ -133,14 +133,18 @@
                             action=""
                             :http-request="(params) => handleAttachmentUpload(params, row)"
                             :file-list="row.attachmentList || []"
+                            :show-file-list="true"
+                            list-type="text"
                             multiple
                             :limit="3"
                             size="small"
                         >
-                            <el-button size="small" type="primary">上传</el-button>
+                            <el-button size="small" type="primary">选择文件</el-button>
                         </el-upload>
                     </template>
-                    <el-button v-else type="text" size="small" @click.stop="handleViewAttachment(row)">查看</el-button>
+                    <el-button v-else type="text" size="small" @click.stop="handleViewAttachment(row)">
+                        {{ (row.attachmentList && row.attachmentList.length > 0) ? `附件(${row.attachmentList.length})` : '无附件' }}
+                    </el-button>
                 </template>
             </el-table-column>
             <el-table-column label="操作" width="150" align="center" fixed="right">
@@ -292,9 +296,17 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, defineProps } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import { Plus, Delete, Upload, Download, Edit, Document, Check, Close } from '@element-plus/icons-vue';
 import * as XLSX from 'xlsx';
+import { 
+    getPersonnelQualifications, 
+    createPersonnelQualification, 
+    updatePersonnelQualification, 
+    deletePersonnelQualification, 
+    batchDeletePersonnelQualifications,
+    uploadAttachment 
+} from '../../api/personnel';
 
 const props = defineProps({
     taskName: {
@@ -368,8 +380,13 @@ const tableRef = ref();
 
 // 新建（通过表格内联编辑）
 const handleAddRow = () => {
-    const newRow: Personnel = {
-        id: Date.now(),
+    // 打开新建对话框
+    dialogVisible.value = true;
+    isEdit.value = false;
+    editingIndex.value = -1;
+    
+    // 重置表单数据，只保留任务名称
+    Object.assign(formData, {
         task_name: props.taskName,
         name: '',
         gender: '',
@@ -380,11 +397,11 @@ const handleAddRow = () => {
         instruments: '',
         training: '',
         remark: '',
-        attachment: '',
-        attachmentList: [],
-        isEditing: true
-    };
-    tableData.value.push(newRow);
+        attachment: ''
+    });
+    
+    // 清空附件列表
+    attachmentList.value = [];
 };
 
 // 编辑
@@ -400,12 +417,42 @@ const handleEdit = (row: Personnel) => {
 
 // 保存编辑
 const handleSave = async (row: Personnel) => {
+    const loading = ElLoading.service({
+        lock: true,
+        text: '保存中...',
+        background: 'rgba(0, 0, 0, 0.7)'
+    });
+    
     try {
-        // TODO: 调用后端API保存数据
-        row.isEditing = false;
-        ElMessage.success('保存成功');
+        // 调用后端API保存数据
+        if (row.id) {
+            // 更新现有记录
+            const response = await updatePersonnelQualification(row.id, row);
+            if (response.code === 200) {
+                row.isEditing = false;
+                ElMessage.success('保存成功');
+                // 刷新数据
+                await loadData();
+            } else {
+                ElMessage.error(response.msg || '保存失败');
+            }
+        } else {
+            // 创建新记录
+            const response = await createPersonnelQualification(row);
+            if (response.code === 200) {
+                row.isEditing = false;
+                ElMessage.success('创建成功');
+                // 刷新数据
+                await loadData();
+            } else {
+                ElMessage.error(response.msg || '创建失败');
+            }
+        }
     } catch (error) {
+        console.error('保存失败:', error);
         ElMessage.error('保存失败');
+    } finally {
+        loading.close();
     }
 };
 
@@ -422,11 +469,38 @@ const handleDelete = (row: Personnel) => {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-    }).then(() => {
-        const index = tableData.value.indexOf(row);
-        if (index > -1) {
-            tableData.value.splice(index, 1);
-            ElMessage.success('删除成功');
+    }).then(async () => {
+        if (!row.id) {
+            // 如果是新建的未保存记录，直接从本地数据中删除
+            const index = tableData.value.indexOf(row);
+            if (index > -1) {
+                tableData.value.splice(index, 1);
+                ElMessage.success('删除成功');
+            }
+            return;
+        }
+        
+        // 调用后端API删除
+        const loading = ElLoading.service({
+            lock: true,
+            text: '删除中...',
+            background: 'rgba(0, 0, 0, 0.7)'
+        });
+        
+        try {
+            const response = await deletePersonnelQualification(row.id);
+            if (response.code === 200) {
+                ElMessage.success('删除成功');
+                // 刷新数据
+                await loadData();
+            } else {
+                ElMessage.error(response.msg || '删除失败');
+            }
+        } catch (error) {
+            console.error('删除失败:', error);
+            ElMessage.error('删除失败');
+        } finally {
+            loading.close();
         }
     }).catch(() => {
         // 用户取消删除
@@ -444,15 +518,51 @@ const handleDeleteBatch = () => {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-    }).then(() => {
-        selectedRows.value.forEach(row => {
+    }).then(async () => {
+        // 筛选出有ID的记录（已保存到数据库的）
+        const savedRows = selectedRows.value.filter(row => row.id);
+        const unsavedRows = selectedRows.value.filter(row => !row.id);
+        
+        // 处理未保存的记录（直接从本地数据中删除）
+        unsavedRows.forEach(row => {
             const index = tableData.value.indexOf(row);
             if (index > -1) {
                 tableData.value.splice(index, 1);
             }
         });
+        
+        if (savedRows.length > 0) {
+            // 调用后端API批量删除
+            const loading = ElLoading.service({
+                lock: true,
+                text: '删除中...',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            
+            try {
+                const ids = savedRows.map(row => row.id);
+                const response = await batchDeletePersonnelQualifications(ids);
+                if (response.code === 200) {
+                    ElMessage.success('批量删除成功');
+                    // 刷新数据
+                    await loadData();
+                } else {
+                    ElMessage.error(response.msg || '批量删除失败');
+                }
+            } catch (error) {
+                console.error('批量删除失败:', error);
+                ElMessage.error('批量删除失败');
+            } finally {
+                loading.close();
+            }
+        } else if (unsavedRows.length > 0) {
+            // 如果只有未保存的记录被删除
+            ElMessage.success('删除成功');
+        }
+        
         selectedRows.value = [];
-        ElMessage.success('删除成功');
+    }).catch(() => {
+        // 用户取消删除
     });
 };
 
@@ -543,29 +653,99 @@ const handleViewAttachment = (row: Personnel) => {
         return;
     }
 
-    // 显示附件列表（暂时用消息提示，实际可以做成弹窗）
-    const fileNames = attachments.map(file => file.name).join('\n');
-    ElMessage.info(`附件列表：\n${fileNames}`);
+    // 创建自定义的附件列表内容
+    const attachmentsContent = attachments.map((file, index) =>
+        `<div style="margin: 8px 0; padding: 8px; background: #f5f7fa; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <span>${index + 1}. ${file.name}</span>
+            <a href="${file.url}" download="${file.name}" style="color: #409eff; text-decoration: none; padding: 4px 8px; background: #ecf5ff; border-radius: 4px;">下载</a>
+        </div>`
+    ).join('');
+
+    ElMessageBox.alert(
+        `<div style="max-height: 300px; overflow-y: auto;">${attachmentsContent}</div>`,
+        '附件列表',
+        {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: '关闭',
+            showCancelButton: false,
+            customClass: 'attachment-dialog'
+        }
+    );
 };
 
-// 附件上传
-const handleAttachmentUpload = (params: any, row: Personnel) => {
-    // TODO: 实现附件上传功能
+
+// 附件上传（兼容表格行与弹窗两种场景）
+const handleAttachmentUpload = async (params: any, row?: Personnel) => {
     const file = params.file;
-    if (!row.attachmentList) {
-        row.attachmentList = [];
+
+    // 目标文件列表：优先使用表格行的附件列表；若无row则使用弹窗的附件列表
+    const targetList: any[] = row
+        ? (row.attachmentList = row.attachmentList || [])
+        : attachmentList.value;
+
+    // 创建FormData对象
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        // 先显示文件名，提升用户体验
+        const tempFileInfo = {
+            uid: Date.now(),
+            name: file.name,
+            status: 'uploading'
+        };
+
+        // 先添加到列表，显示上传中状态
+        targetList.push(tempFileInfo);
+
+        const loading = ElLoading.service({
+            lock: true,
+            text: '上传中...',
+            background: 'rgba(0, 0, 0, 0.7)'
+        });
+
+        // 调用上传API
+        const response = await uploadAttachment(formData);
+        loading.close();
+
+        if (response && response.code === 200) {
+            // 上传成功，更新文件信息
+            const index = targetList.findIndex((item: any) => item.uid === tempFileInfo.uid);
+            if (index !== -1) {
+                targetList[index] = {
+                    uid: response.data.uid,
+                    name: response.data.name,
+                    url: response.data.url,
+                    status: 'success'
+                };
+            }
+
+            ElMessage.success('附件上传成功');
+
+            // 自动处理上传回调
+            if (params.onSuccess) {
+                params.onSuccess(response, file);
+            }
+        } else {
+            // 上传失败，从列表中移除
+            const index = targetList.findIndex((item: any) => item.uid === tempFileInfo.uid);
+            if (index !== -1) {
+                targetList.splice(index, 1);
+            }
+
+            ElMessage.error(response?.msg || '上传失败');
+            if (params.onError) {
+                params.onError(new Error(response?.msg || '上传失败'));
+            }
+        }
+    } catch (error) {
+        console.error('上传失败:', error);
+        ElMessage.error('上传失败，请检查网络连接或后端服务');
+
+        if (params.onError) {
+            params.onError(error);
+        }
     }
-
-    // 模拟上传成功
-    const fileInfo = {
-        uid: Date.now(),
-        name: file.name,
-        url: '#', // 实际应该是上传后的URL
-        status: 'success'
-    };
-
-    row.attachmentList.push(fileInfo);
-    ElMessage.success('附件上传成功');
 };
 
 // 选择变化
@@ -580,18 +760,55 @@ const handleRowClick = (row: Personnel) => {
 
 // 弹窗提交
 const handleDialogSubmit = () => {
-    formRef.value?.validate((valid: boolean) => {
+    formRef.value?.validate(async (valid: boolean) => {
         if (valid) {
-            if (isEdit.value && editingIndex.value >= 0) {
-                // 编辑模式
-                tableData.value[editingIndex.value] = { ...formData };
-                ElMessage.success('编辑成功');
-            } else {
-                // 新建模式
-                tableData.value.push({ ...formData });
-                ElMessage.success('新建成功');
+            const loading = ElLoading.service({
+                lock: true,
+                text: isEdit.value ? '更新中...' : '创建中...',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            
+            try {
+                // 准备提交的数据
+                const submitData = { 
+                    ...formData,
+                    attachmentList: attachmentList.value
+                };
+                
+                if (isEdit.value && editingIndex.value >= 0) {
+                    // 编辑模式
+                    const row = tableData.value[editingIndex.value];
+                    if (row.id) {
+                        // 更新现有记录
+                        const response = await updatePersonnelQualification(row.id, submitData);
+                        if (response.code === 200) {
+                            ElMessage.success('编辑成功');
+                            // 刷新数据
+                            await loadData();
+                        } else {
+                            ElMessage.error(response.msg || '编辑失败');
+                        }
+                    }
+                } else {
+                    // 新建模式
+                    const response = await createPersonnelQualification(submitData);
+                    if (response.code === 200) {
+                        ElMessage.success('创建成功');
+                        // 刷新数据
+                        await loadData();
+                    } else {
+                        ElMessage.error(response.msg || '创建失败');
+                    }
+                }
+                
+                // 关闭对话框
+                dialogVisible.value = false;
+            } catch (error) {
+                console.error(isEdit.value ? '编辑失败:' : '创建失败:', error);
+                ElMessage.error(isEdit.value ? '编辑失败' : '创建失败');
+            } finally {
+                loading.close();
             }
-            dialogVisible.value = false;
         }
     });
 };
@@ -602,31 +819,72 @@ const handleDialogClose = () => {
     formRef.value?.resetFields();
 };
 
-// 模拟加载数据
+// 加载数据
 const loadData = async () => {
+    console.log('开始加载人员资质数据，任务名称:', props.taskName);
+
+    const loading = ElLoading.service({
+        lock: true,
+        text: '加载中...',
+        background: 'rgba(0, 0, 0, 0.7)'
+    });
+
     try {
-        // TODO: 调用后端API获取数据
-        // 这里暂时用模拟数据
-        tableData.value = [
-            {
-                id: 1,
-                task_name: props.taskName,
-                name: '张三',
-                gender: '男',
-                birth_date: '1985-06',
-                title: '工程师',
-                work_unit: '海洋研究所',
-                major: '海洋地质',
-                instruments: 'CTD、多参数水质仪',
-                training: '海洋调查技能培训',
-                remark: '经验丰富',
-                attachment: '',
-                attachmentList: [],
+        // 检查认证状态
+        let token = null;
+        let userId = null;
+
+        try {
+            token = localStorage.getItem('token');
+            userId = localStorage.getItem('userId');
+        } catch (e) {
+            console.warn('无法访问localStorage:', e);
+        }
+
+        console.log('当前认证状态:', {
+            hasToken: !!token,
+            hasUserId: !!userId,
+            tokenPrefix: token ? token.substring(0, 20) + '...' : '无'
+        });
+
+        // 如果没有token，提示用户登录
+        if (!token) {
+            ElMessage.warning('请先登录系统');
+            loading.close();
+            return;
+        }
+
+        const response = await getPersonnelQualifications({ task_name: props.taskName });
+        console.log('API响应:', response);
+
+        if (response && response.code === 200) {
+            console.log('数据加载成功，记录数量:', response.data?.length || 0);
+            // 添加isEditing属性
+            tableData.value = (response.data || []).map((item: any) => ({
+                ...item,
                 isEditing: false
-            }
-        ];
+            }));
+        } else {
+            console.error('API返回错误:', response);
+            ElMessage.error(response?.msg || '加载数据失败');
+        }
     } catch (error) {
-        ElMessage.error('加载数据失败');
+        console.error('加载数据失败，错误详情:', error);
+        if (error.response) {
+            console.error('响应状态:', error.response.status);
+            console.error('响应数据:', error.response.data);
+
+            // 如果是401错误，提示重新登录
+            if (error.response.status === 401) {
+                ElMessage.error('登录已过期，请重新登录');
+            } else {
+                ElMessage.error(`加载数据失败: ${error.response.data?.msg || '网络错误'}`);
+            }
+        } else {
+            ElMessage.error(`加载数据失败: ${error.message || '网络错误'}`);
+        }
+    } finally {
+        loading.close();
     }
 };
 
@@ -638,11 +896,11 @@ onMounted(() => {
 <style scoped>
 .personnel-qualifications {
     padding: 20px;
-         /* 确保容器不超出 */
- 
-  /* 防止内容横向溢出 */
-  overflow-x: hidden;
-
+    /* 确保容器不超出 */
+    /* 当内容溢出时，显示水平滚动条 */
+    overflow-x: auto;
+    /* 设置最大宽度为100%，防止内容溢出父容器 */
+    max-width: 100%;
 }
 
 .toolbar {
@@ -663,6 +921,8 @@ onMounted(() => {
 
 .personnel-table {
     width: 70%;
+    /* 设置最小宽度，确保表格有足够空间 */
+    min-width: 1200px;
 }
 
 .task-name {
@@ -728,5 +988,29 @@ onMounted(() => {
 .attachment-upload .el-button {
     width: 100%;
     margin: 0;
+}
+
+/* 附件对话框样式 */
+.attachment-dialog .el-message-box__content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.attachment-dialog .el-message-box__content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.attachment-dialog .el-message-box__content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.attachment-dialog .el-message-box__content::-webkit-scrollbar-thumb {
+    background: #c0c4cc;
+    border-radius: 3px;
+}
+
+.attachment-dialog .el-message-box__content::-webkit-scrollbar-thumb:hover {
+    background: #909399;
 }
 </style>

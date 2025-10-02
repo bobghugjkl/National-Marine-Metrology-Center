@@ -89,32 +89,34 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     username: param.username,
                     password: param.password
                 });
-                
-                if (res.data.code === 200) {
-                    ElMessage.success(res.data.message || '登录成功');
-                    
+
+                console.log('登录响应:', res);
+
+                if (res && res.code === 200) {
+                    ElMessage.success(res.message || '登录成功');
+
                     // 存储用户信息
-                    const userData = res.data.data;
+                    const userData = res.data;
                     localStorage.setItem('vuems_name', userData.username);
                     localStorage.setItem('vuems_user', JSON.stringify(userData));
                     localStorage.setItem('userId', userData.id);  // 保存用户ID（用于显示）
                     localStorage.setItem('token', userData.token);  // ← 保存 JWT token（用于认证）
-                    
+
                     // 设置权限
                     const keys = permiss.defaultList[userData.role === '管理员' || userData.role === 'super_admin' ? 'admin' : 'user'];
                     permiss.handleSet(keys);
-                    
+
                     // 记住密码
                     if (checked.value) {
                         localStorage.setItem('login-param', JSON.stringify(param));
                     } else {
                         localStorage.removeItem('login-param');
                     }
-                    
+
                     // 跳转到首页
                     router.push('/dashboard');
                 } else {
-                    ElMessage.error(res.data.message || '登录失败');
+                    ElMessage.error(res?.message || '登录失败');
                 }
             } catch (error: any) {
                 // 统一显示"用户名或密码不正确"

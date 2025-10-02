@@ -354,8 +354,17 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     NProgress.start();
-    const role = localStorage.getItem('vuems_name');
-    const token = localStorage.getItem('token');
+
+    let role = null;
+    let token = null;
+
+    try {
+        role = localStorage.getItem('vuems_name');
+        token = localStorage.getItem('token');
+    } catch (e) {
+        console.warn('无法访问localStorage:', e);
+    }
+
     const permiss = usePermissStore();
 
     console.log('路由守卫检查:', {
@@ -367,7 +376,7 @@ router.beforeEach((to, from, next) => {
         permiss: to.meta.permiss
     });
 
-    if (!role && to.meta.noAuth !== true) {
+    if (!role && !token && to.meta.noAuth !== true) {
         console.log('用户未登录，跳转到登录页');
         next('/login');
     } else if (typeof to.meta.permiss == 'string' && !permiss.key.includes(to.meta.permiss)) {
