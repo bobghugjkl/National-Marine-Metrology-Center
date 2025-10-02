@@ -2,7 +2,7 @@
 	<div>
 		<!-- 页面标题和操作按钮 -->
 		<div class="page-header">
-			<h2>外业调查人员资质一览表</h2>
+			<h2>外业调查项目/仪器比测统计表</h2>
 			<div class="header-buttons">
 				<el-button type="success" :icon="Download" @click="handleDownloadTemplate">
 					下载excel模板
@@ -11,7 +11,7 @@
 					导入excel文件
 				</el-button>
 				<el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">
-					新增人员资质
+					新增调查项目
 				</el-button>
 			</div>
 		</div>
@@ -48,10 +48,15 @@
 					</el-button>
 				</template>
 
-				<!-- 性别列 -->
-				<template #sex="{ rows }">
-					<el-tag :type="rows.sex === '男' ? 'primary' : 'success'">
-						{{ rows.sex }}
+				<!-- 调查项目列 -->
+				<template #investigation_item="{ rows }">
+					<el-tag type="primary">{{ rows.investigation_item }}</el-tag>
+				</template>
+
+				<!-- 比测结果列 -->
+				<template #comparison_result="{ rows }">
+					<el-tag :type="getResultType(rows.comparison_result)">
+						{{ rows.comparison_result || '-' }}
 					</el-tag>
 				</template>
 
@@ -66,17 +71,17 @@
 				<!-- 操作列 -->
 				<template #operator="{ rows }">
 					<el-button type="primary" size="small" @click="handleEdit(rows)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
 					<el-button type="info" size="small" @click="handleView(rows)">查看</el-button>
+					<el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
 				</template>
 			</TableCustom>
 		</div>
 
 		<!-- 新增/编辑弹窗 -->
 		<el-dialog
-			:title="isEdit ? '编辑人员资质' : '新增人员资质'"
+			:title="isEdit ? '编辑调查项目' : '新增调查项目'"
 			v-model="visible"
-			width="800px"
+			width="900px"
 			destroy-on-close
 			:close-on-click-modal="false"
 			@close="closeDialog"
@@ -85,80 +90,65 @@
 				ref="formRef"
 				:model="formData"
 				:rules="formRules"
-				label-width="120px"
+				label-width="140px"
 				:label-position="'right'"
 			>
+				<el-form-item label="航次任务名称" prop="task_name">
+					<el-input v-model="formData.task_name" placeholder="请输入航次任务名称" />
+				</el-form-item>
+
+				<el-form-item label="调查项目/仪器" prop="investigation_item">
+					<el-input v-model="formData.investigation_item" placeholder="请输入调查项目或仪器名称" />
+				</el-form-item>
+
 				<el-row :gutter="20">
 					<el-col :span="12">
-						<el-form-item label="航次任务名称" prop="task_name">
-							<el-input v-model="formData.task_name" placeholder="请输入航次任务名称" />
+						<el-form-item label="比测单位甲仪器" prop="unit_a_equipment">
+							<el-input v-model="formData.unit_a_equipment" placeholder="请输入比测单位甲仪器" />
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="姓名" prop="name">
-							<el-input v-model="formData.name" placeholder="请输入姓名" />
+						<el-form-item label="比测单位乙仪器" prop="unit_b_equipment">
+							<el-input v-model="formData.unit_b_equipment" placeholder="请输入比测单位乙仪器" />
 						</el-form-item>
 					</el-col>
 				</el-row>
 
 				<el-row :gutter="20">
-					<el-col :span="12">
-						<el-form-item label="性别" prop="sex">
-							<el-radio-group v-model="formData.sex">
-								<el-radio value="男">男</el-radio>
-								<el-radio value="女">女</el-radio>
-							</el-radio-group>
-						</el-form-item>
-					</el-col>
-					<el-col :span="12">
-						<el-form-item label="出生年月" prop="birthdate">
+					<el-col :span="8">
+						<el-form-item label="比测时间" prop="comparison_time">
 							<el-date-picker
-								v-model="formData.birthdate"
-								type="date"
-								placeholder="选择出生年月"
-								value-format="YYYY-MM-DD"
+								v-model="formData.comparison_time"
+								type="datetime"
+								placeholder="选择比测时间"
+								value-format="YYYY-MM-DD HH:mm:ss"
 								style="width: 100%"
 							/>
 						</el-form-item>
 					</el-col>
-				</el-row>
-
-				<el-row :gutter="20">
-					<el-col :span="12">
-						<el-form-item label="职称" prop="professional_title">
-							<el-input v-model="formData.professional_title" placeholder="请输入职称" />
+					<el-col :span="8">
+						<el-form-item label="比测地点" prop="comparison_location">
+							<el-input v-model="formData.comparison_location" placeholder="请输入比测地点" />
 						</el-form-item>
 					</el-col>
-					<el-col :span="12">
-						<el-form-item label="工作单位" prop="employer">
-							<el-input v-model="formData.employer" placeholder="请输入工作单位" />
+					<el-col :span="8">
+						<el-form-item label="比测结果" prop="comparison_result">
+							<el-select v-model="formData.comparison_result" placeholder="请选择比测结果" style="width: 100%">
+								<el-option label="一致" value="一致" />
+								<el-option label="基本一致" value="基本一致" />
+								<el-option label="差异较大" value="差异较大" />
+								<el-option label="需要进一步验证" value="需要进一步验证" />
+							</el-select>
 						</el-form-item>
 					</el-col>
 				</el-row>
-
-				<el-form-item label="从事专业" prop="specialty">
-					<el-input v-model="formData.specialty" placeholder="请输入从事专业" />
-				</el-form-item>
-
-				<el-form-item label="本航次操作仪器" prop="instruments">
-					<el-input v-model="formData.instruments" placeholder="请输入本航次操作仪器" />
-				</el-form-item>
-
-				<el-form-item label="培训情况" prop="training">
-					<el-input
-						v-model="formData.training"
-						type="textarea"
-						:rows="3"
-						placeholder="请输入培训情况"
-					/>
-				</el-form-item>
 
 				<el-form-item label="备注" prop="remarks">
 					<el-input
 						v-model="formData.remarks"
 						type="textarea"
 						:rows="3"
-						placeholder="请输入备注"
+						placeholder="请输入备注信息"
 					/>
 				</el-form-item>
 
@@ -191,17 +181,15 @@
 		</el-dialog>
 
 		<!-- 查看详情弹窗 -->
-		<el-dialog title="人员资质详情" v-model="visible1" width="800px" destroy-on-close>
+		<el-dialog title="调查项目详情" v-model="visible1" width="900px" destroy-on-close>
 			<el-descriptions :column="2" border>
 				<el-descriptions-item label="航次任务名称">{{ viewData.task_name }}</el-descriptions-item>
-				<el-descriptions-item label="姓名">{{ viewData.name }}</el-descriptions-item>
-				<el-descriptions-item label="性别">{{ viewData.sex }}</el-descriptions-item>
-				<el-descriptions-item label="出生年月">{{ viewData.birthdate }}</el-descriptions-item>
-				<el-descriptions-item label="职称">{{ viewData.professional_title }}</el-descriptions-item>
-				<el-descriptions-item label="工作单位">{{ viewData.employer }}</el-descriptions-item>
-				<el-descriptions-item label="从事专业">{{ viewData.specialty }}</el-descriptions-item>
-				<el-descriptions-item label="本航次操作仪器">{{ viewData.instruments }}</el-descriptions-item>
-				<el-descriptions-item label="培训情况" :span="2">{{ viewData.training }}</el-descriptions-item>
+				<el-descriptions-item label="调查项目/仪器">{{ viewData.investigation_item }}</el-descriptions-item>
+				<el-descriptions-item label="比测单位甲仪器">{{ viewData.unit_a_equipment }}</el-descriptions-item>
+				<el-descriptions-item label="比测单位乙仪器">{{ viewData.unit_b_equipment }}</el-descriptions-item>
+				<el-descriptions-item label="比测时间">{{ viewData.comparison_time }}</el-descriptions-item>
+				<el-descriptions-item label="比测地点">{{ viewData.comparison_location }}</el-descriptions-item>
+				<el-descriptions-item label="比测结果">{{ viewData.comparison_result }}</el-descriptions-item>
 				<el-descriptions-item label="备注" :span="2">{{ viewData.remarks }}</el-descriptions-item>
 				<el-descriptions-item label="附件" :span="2">
 					<div v-if="viewData.attachments && viewData.attachments.length > 0">
@@ -241,20 +229,20 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="PersonnelQualificationsList">
+<script setup lang="ts" name="InvestigationList">
 import { ref, reactive, computed } from 'vue';
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus';
 import { CirclePlusFilled, Download, Upload } from '@element-plus/icons-vue';
 import {
-	fetchPersonnelQualifications,
-	createPersonnelQualification,
-	updatePersonnelQualification,
-	deletePersonnelQualification,
-	batchDeletePersonnelQualifications,
-	downloadExcelTemplate,
-	importExcelFile,
-	exportPersonnelQualifications
-} from '@/api/personnel';
+	fetchInvestigationList,
+	createInvestigation,
+	updateInvestigation,
+	deleteInvestigation,
+	batchDeleteInvestigation,
+	downloadInvestigationTemplate,
+	importInvestigationExcel,
+	exportInvestigationData
+} from '@/api/investigation';
 import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import { TableItem } from '@/types/table';
@@ -263,14 +251,18 @@ import { FormOption, FormOptionList } from '@/types/form-option';
 // 查询相关
 const query = reactive({
 	task_name: '',
-	name: '',
-	employer: ''
+	investigation_item: '',
+	unit_a_equipment: '',
+	unit_b_equipment: '',
+	comparison_location: ''
 });
 
 const searchOpt = ref<FormOptionList[]>([
 	{ type: 'input', label: '航次任务名称：', prop: 'task_name' },
-	{ type: 'input', label: '姓名：', prop: 'name' },
-	{ type: 'input', label: '工作单位：', prop: 'employer' }
+	{ type: 'input', label: '调查项目：', prop: 'investigation_item' },
+	{ type: 'input', label: '比测单位甲仪器：', prop: 'unit_a_equipment' },
+	{ type: 'input', label: '比测单位乙仪器：', prop: 'unit_b_equipment' },
+	{ type: 'input', label: '比测地点：', prop: 'comparison_location' }
 ]);
 
 const handleSearch = () => {
@@ -287,45 +279,36 @@ const columns = ref([
 		minWidth: 150
 	},
 	{
-		prop: 'name',
-		label: '姓名',
-		minWidth: 100
+		prop: 'investigation_item',
+		label: '调查项目/仪器',
+		minWidth: 150,
+		slot: 'investigation_item'
 	},
 	{
-		prop: 'sex',
-		label: '性别',
-		minWidth: 60,
-		slot: 'sex'
-	},
-	{
-		prop: 'birthdate',
-		label: '出生年月',
-		minWidth: 100
-	},
-	{
-		prop: 'professional_title',
-		label: '职称',
-		minWidth: 100
-	},
-	{
-		prop: 'employer',
-		label: '工作单位',
+		prop: 'unit_a_equipment',
+		label: '比测单位甲仪器',
 		minWidth: 150
 	},
 	{
-		prop: 'specialty',
-		label: '从事专业',
+		prop: 'unit_b_equipment',
+		label: '比测单位乙仪器',
+		minWidth: 150
+	},
+	{
+		prop: 'comparison_time',
+		label: '比测时间',
+		minWidth: 150
+	},
+	{
+		prop: 'comparison_location',
+		label: '比测地点',
 		minWidth: 120
 	},
 	{
-		prop: 'instruments',
-		label: '本航次操作仪器',
-		minWidth: 150
-	},
-	{
-		prop: 'training',
-		label: '培训情况',
-		minWidth: 150
+		prop: 'comparison_result',
+		label: '比测结果',
+		minWidth: 120,
+		slot: 'comparison_result'
 	},
 	{
 		prop: 'remarks',
@@ -364,11 +347,11 @@ const getData = async () => {
 			...query
 		};
 
-		const res = await fetchPersonnelQualifications(params);
+		const res = await fetchInvestigationList(params);
 		tableData.value = res.data.list || [];
 		page.total = res.data.total || 0;
 	} catch (error) {
-		console.error('获取人员资质数据失败:', error);
+		console.error('获取调查项目数据失败:', error);
 		ElMessage.error('获取数据失败');
 	}
 };
@@ -377,6 +360,17 @@ const getData = async () => {
 const changePage = (val: number) => {
 	page.index = val;
 	getData();
+};
+
+// 获取比测结果状态样式
+const getResultType = (result: string) => {
+	const resultMap: { [key: string]: string } = {
+		'一致': 'success',
+		'基本一致': 'warning',
+		'差异较大': 'danger',
+		'需要进一步验证': 'info'
+	};
+	return resultMap[result] || 'info';
 };
 
 // 新增/编辑弹窗相关
@@ -388,14 +382,12 @@ const uploadRef = ref();
 
 const formData = ref({
 	task_name: '',
-	name: '',
-	sex: '男',
-	birthdate: '',
-	professional_title: '',
-	employer: '',
-	specialty: '',
-	instruments: '',
-	training: '',
+	investigation_item: '',
+	unit_a_equipment: '',
+	unit_b_equipment: '',
+	comparison_time: '',
+	comparison_location: '',
+	comparison_result: '',
 	remarks: '',
 	attachments: []
 });
@@ -404,29 +396,29 @@ const formRules = {
 	task_name: [
 		{ required: true, message: '请输入航次任务名称', trigger: 'blur' }
 	],
-	name: [
-		{ required: true, message: '请输入姓名', trigger: 'blur' }
+	investigation_item: [
+		{ required: true, message: '请输入调查项目/仪器', trigger: 'blur' }
 	],
-	sex: [
-		{ required: true, message: '请选择性别', trigger: 'change' }
+	unit_a_equipment: [
+		{ required: true, message: '请输入比测单位甲仪器', trigger: 'blur' }
 	],
-	birthdate: [
-		{ required: true, message: '请选择出生年月', trigger: 'change' }
+	unit_b_equipment: [
+		{ required: true, message: '请输入比测单位乙仪器', trigger: 'blur' }
 	],
-	professional_title: [
-		{ required: true, message: '请输入职称', trigger: 'blur' }
+	comparison_time: [
+		{ required: true, message: '请选择比测时间', trigger: 'change' }
 	],
-	employer: [
-		{ required: true, message: '请输入工作单位', trigger: 'blur' }
+	comparison_location: [
+		{ required: true, message: '请输入比测地点', trigger: 'blur' }
 	],
-	specialty: [
-		{ required: true, message: '请输入从事专业', trigger: 'blur' }
+	comparison_result: [
+		{ required: true, message: '请选择比测结果', trigger: 'change' }
 	]
 };
 
 // 上传相关
-const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/upload`;
-const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/import`;
+const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/investigation-projects/upload`;
+const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/investigation-projects/import`;
 
 const uploadHeaders = computed(() => {
 	const token = localStorage.getItem('token');
@@ -452,7 +444,7 @@ const handleEdit = (row: TableItem) => {
 const handleDelete = async (row: TableItem) => {
 	try {
 		await ElMessageBox.confirm(
-			`确定要删除人员"${row.name}"的资质记录吗？此操作不可恢复！`,
+			`确定要删除调查项目"${row.investigation_item}"吗？此操作不可恢复！`,
 			'删除确认',
 			{
 				confirmButtonText: '确定删除',
@@ -461,7 +453,7 @@ const handleDelete = async (row: TableItem) => {
 			}
 		);
 
-		await deletePersonnelQualification(row.id);
+		await deleteInvestigation(row.id);
 		ElMessage.success('删除成功');
 		getData();
 	} catch (error) {
@@ -479,9 +471,9 @@ const handleBatchDelete = async () => {
 	}
 
 	try {
-		const names = selectedRows.value.map(row => row.name).join('、');
+		const investigationItems = selectedRows.value.map(row => row.investigation_item).join('、');
 		await ElMessageBox.confirm(
-			`确定要删除选中的 ${selectedRows.value.length} 条记录吗？此操作不可恢复！`,
+			`确定要删除选中的 ${selectedRows.value.length} 个调查项目吗？此操作不可恢复！`,
 			'批量删除确认',
 			{
 				confirmButtonText: '确定删除',
@@ -491,7 +483,7 @@ const handleBatchDelete = async () => {
 		);
 
 		const ids = selectedRows.value.map(row => row.id);
-		await batchDeletePersonnelQualifications(ids);
+		await batchDeleteInvestigation(ids);
 		ElMessage.success('批量删除成功');
 		selectedRows.value = [];
 		getData();
@@ -515,10 +507,10 @@ const handleSubmit = async () => {
 		};
 
 		if (isEdit.value) {
-			await updatePersonnelQualification(formData.value.id, submitData);
+			await updateInvestigation(formData.value.id, submitData);
 			ElMessage.success('更新成功');
 		} else {
-			await createPersonnelQualification(submitData);
+			await createInvestigation(submitData);
 			ElMessage.success('新增成功');
 		}
 
@@ -557,13 +549,13 @@ const handleView = (row: TableItem) => {
 // 下载模板
 const handleDownloadTemplate = async () => {
 	try {
-		const response = await downloadExcelTemplate();
+		const response = await downloadInvestigationTemplate();
 		// 处理文件下载
 		const blob = new Blob([response.data]);
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = '人员资质模板.xlsx';
+		link.download = '调查项目模板.xlsx';
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -644,7 +636,6 @@ const handleFileRemove = (file: any) => {
 // 查看附件
 const handleViewAttachment = (row: TableItem) => {
 	if (row.attachments && row.attachments.length > 0) {
-		// 这里可以实现附件预览功能
 		ElMessage.info('附件预览功能开发中...');
 	}
 };
@@ -696,7 +687,7 @@ getData();
 }
 
 :deep(.el-descriptions__label) {
-	width: 120px;
+	width: 140px;
 	font-weight: 500;
 	color: #606266;
 }

@@ -9,6 +9,7 @@
                 :viewFunc="handleDetail"
                 :delFunc="handleDelete"
                 :editFunc="handleEdit"
+                :rowClickFunc="handleRowClick"
                 :currentPage="page.index"
                 :changePage="changePage"
             >
@@ -28,6 +29,7 @@
 import { ref, reactive, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { CirclePlus } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 import TableCustom from '@/components/table-custom.vue';
 import TableEdit from '@/components/table-edit.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -49,6 +51,8 @@ interface Task {
     executiontime?: string;
     subject?: string;
 }
+
+const router = useRouter();
 
 // 查询相关
 const query = reactive({
@@ -221,6 +225,10 @@ const handleEdit = (row: Task) => {
 
 const handleDetail = (row: Task) => {
     ElMessage.info('查看详情功能待实现');
+}
+
+const handleRowClick = (row: Task) => {
+    router.push(`/task-detail/${row.task_name}`);
 }
 
 const closeDialog = () => {

@@ -2,7 +2,7 @@
 	<div>
 		<!-- 页面标题和操作按钮 -->
 		<div class="page-header">
-			<h2>外业调查人员资质一览表</h2>
+			<h2>仪器设备（工作计量器具）一览表</h2>
 			<div class="header-buttons">
 				<el-button type="success" :icon="Download" @click="handleDownloadTemplate">
 					下载excel模板
@@ -11,7 +11,7 @@
 					导入excel文件
 				</el-button>
 				<el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">
-					新增人员资质
+					新增设备
 				</el-button>
 			</div>
 		</div>
@@ -48,11 +48,21 @@
 					</el-button>
 				</template>
 
-				<!-- 性别列 -->
-				<template #sex="{ rows }">
-					<el-tag :type="rows.sex === '男' ? 'primary' : 'success'">
-						{{ rows.sex }}
-					</el-tag>
+				<!-- 类别列 -->
+				<template #category="{ rows }">
+					<el-tag type="info">{{ rows.category }}</el-tag>
+				</template>
+
+				<!-- 证书编号列 -->
+				<template #certificate_number="{ rows }">
+					<span class="certificate-number">{{ rows.certificate_number || '-' }}</span>
+				</template>
+
+				<!-- 有效期列 -->
+				<template #validity_period="{ rows }">
+					<span :class="getValidityStatus(rows.validity_period)">
+						{{ rows.validity_period || '-' }}
+					</span>
 				</template>
 
 				<!-- 附件列 -->
@@ -66,17 +76,17 @@
 				<!-- 操作列 -->
 				<template #operator="{ rows }">
 					<el-button type="primary" size="small" @click="handleEdit(rows)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
 					<el-button type="info" size="small" @click="handleView(rows)">查看</el-button>
+					<el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
 				</template>
 			</TableCustom>
 		</div>
 
 		<!-- 新增/编辑弹窗 -->
 		<el-dialog
-			:title="isEdit ? '编辑人员资质' : '新增人员资质'"
+			:title="isEdit ? '编辑设备信息' : '新增设备信息'"
 			v-model="visible"
-			width="800px"
+			width="900px"
 			destroy-on-close
 			:close-on-click-modal="false"
 			@close="closeDialog"
@@ -85,7 +95,7 @@
 				ref="formRef"
 				:model="formData"
 				:rules="formRules"
-				label-width="120px"
+				label-width="140px"
 				:label-position="'right'"
 			>
 				<el-row :gutter="20">
@@ -95,27 +105,51 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="姓名" prop="name">
-							<el-input v-model="formData.name" placeholder="请输入姓名" />
+						<el-form-item label="类别" prop="category">
+							<el-select v-model="formData.category" placeholder="请选择设备类别" style="width: 100%">
+								<el-option label="测量仪器" value="测量仪器" />
+								<el-option label="标准物质" value="标准物质" />
+								<el-option label="辅助设备" value="辅助设备" />
+								<el-option label="其他" value="其他" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+				</el-row>
+
+				<el-form-item label="仪器（标准物质）名称" prop="equipment_name">
+					<el-input v-model="formData.equipment_name" placeholder="请输入仪器或标准物质名称" />
+				</el-form-item>
+
+				<el-row :gutter="20">
+					<el-col :span="8">
+						<el-form-item label="编号" prop="serial_number">
+							<el-input v-model="formData.serial_number" placeholder="请输入编号" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="型号" prop="model">
+							<el-input v-model="formData.model" placeholder="请输入型号" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="证书编号" prop="certificate_number">
+							<el-input v-model="formData.certificate_number" placeholder="请输入证书编号" />
 						</el-form-item>
 					</el-col>
 				</el-row>
 
 				<el-row :gutter="20">
 					<el-col :span="12">
-						<el-form-item label="性别" prop="sex">
-							<el-radio-group v-model="formData.sex">
-								<el-radio value="男">男</el-radio>
-								<el-radio value="女">女</el-radio>
-							</el-radio-group>
+						<el-form-item label="量程/测量方式" prop="measurement_range">
+							<el-input v-model="formData.measurement_range" placeholder="请输入量程或测量方式" />
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="出生年月" prop="birthdate">
+						<el-form-item label="检定/校准日期" prop="calibration_date">
 							<el-date-picker
-								v-model="formData.birthdate"
+								v-model="formData.calibration_date"
 								type="date"
-								placeholder="选择出生年月"
+								placeholder="选择检定/校准日期"
 								value-format="YYYY-MM-DD"
 								style="width: 100%"
 							/>
@@ -125,40 +159,29 @@
 
 				<el-row :gutter="20">
 					<el-col :span="12">
-						<el-form-item label="职称" prop="professional_title">
-							<el-input v-model="formData.professional_title" placeholder="请输入职称" />
+						<el-form-item label="有效期" prop="validity_period">
+							<el-date-picker
+								v-model="formData.validity_period"
+								type="date"
+								placeholder="选择有效期"
+								value-format="YYYY-MM-DD"
+								style="width: 100%"
+							/>
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="工作单位" prop="employer">
-							<el-input v-model="formData.employer" placeholder="请输入工作单位" />
+						<el-form-item label="检定/校准机构" prop="calibration_organization">
+							<el-input v-model="formData.calibration_organization" placeholder="请输入检定/校准机构" />
 						</el-form-item>
 					</el-col>
 				</el-row>
-
-				<el-form-item label="从事专业" prop="specialty">
-					<el-input v-model="formData.specialty" placeholder="请输入从事专业" />
-				</el-form-item>
-
-				<el-form-item label="本航次操作仪器" prop="instruments">
-					<el-input v-model="formData.instruments" placeholder="请输入本航次操作仪器" />
-				</el-form-item>
-
-				<el-form-item label="培训情况" prop="training">
-					<el-input
-						v-model="formData.training"
-						type="textarea"
-						:rows="3"
-						placeholder="请输入培训情况"
-					/>
-				</el-form-item>
 
 				<el-form-item label="备注" prop="remarks">
 					<el-input
 						v-model="formData.remarks"
 						type="textarea"
 						:rows="3"
-						placeholder="请输入备注"
+						placeholder="请输入备注信息"
 					/>
 				</el-form-item>
 
@@ -191,17 +214,18 @@
 		</el-dialog>
 
 		<!-- 查看详情弹窗 -->
-		<el-dialog title="人员资质详情" v-model="visible1" width="800px" destroy-on-close>
+		<el-dialog title="设备详情" v-model="visible1" width="900px" destroy-on-close>
 			<el-descriptions :column="2" border>
 				<el-descriptions-item label="航次任务名称">{{ viewData.task_name }}</el-descriptions-item>
-				<el-descriptions-item label="姓名">{{ viewData.name }}</el-descriptions-item>
-				<el-descriptions-item label="性别">{{ viewData.sex }}</el-descriptions-item>
-				<el-descriptions-item label="出生年月">{{ viewData.birthdate }}</el-descriptions-item>
-				<el-descriptions-item label="职称">{{ viewData.professional_title }}</el-descriptions-item>
-				<el-descriptions-item label="工作单位">{{ viewData.employer }}</el-descriptions-item>
-				<el-descriptions-item label="从事专业">{{ viewData.specialty }}</el-descriptions-item>
-				<el-descriptions-item label="本航次操作仪器">{{ viewData.instruments }}</el-descriptions-item>
-				<el-descriptions-item label="培训情况" :span="2">{{ viewData.training }}</el-descriptions-item>
+				<el-descriptions-item label="类别">{{ viewData.category }}</el-descriptions-item>
+				<el-descriptions-item label="仪器（标准物质）名称">{{ viewData.equipment_name }}</el-descriptions-item>
+				<el-descriptions-item label="编号">{{ viewData.serial_number }}</el-descriptions-item>
+				<el-descriptions-item label="型号">{{ viewData.model }}</el-descriptions-item>
+				<el-descriptions-item label="量程/测量方式">{{ viewData.measurement_range }}</el-descriptions-item>
+				<el-descriptions-item label="检定/校准日期">{{ viewData.calibration_date }}</el-descriptions-item>
+				<el-descriptions-item label="证书编号">{{ viewData.certificate_number }}</el-descriptions-item>
+				<el-descriptions-item label="有效期">{{ viewData.validity_period }}</el-descriptions-item>
+				<el-descriptions-item label="检定/校准机构">{{ viewData.calibration_organization }}</el-descriptions-item>
 				<el-descriptions-item label="备注" :span="2">{{ viewData.remarks }}</el-descriptions-item>
 				<el-descriptions-item label="附件" :span="2">
 					<div v-if="viewData.attachments && viewData.attachments.length > 0">
@@ -241,20 +265,20 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="PersonnelQualificationsList">
+<script setup lang="ts" name="EquipmentList">
 import { ref, reactive, computed } from 'vue';
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus';
 import { CirclePlusFilled, Download, Upload } from '@element-plus/icons-vue';
 import {
-	fetchPersonnelQualifications,
-	createPersonnelQualification,
-	updatePersonnelQualification,
-	deletePersonnelQualification,
-	batchDeletePersonnelQualifications,
-	downloadExcelTemplate,
-	importExcelFile,
-	exportPersonnelQualifications
-} from '@/api/personnel';
+	fetchEquipmentList,
+	createEquipment,
+	updateEquipment,
+	deleteEquipment,
+	batchDeleteEquipment,
+	downloadEquipmentTemplate,
+	importEquipmentExcel,
+	exportEquipmentData
+} from '@/api/equipment';
 import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import { TableItem } from '@/types/table';
@@ -263,14 +287,22 @@ import { FormOption, FormOptionList } from '@/types/form-option';
 // 查询相关
 const query = reactive({
 	task_name: '',
-	name: '',
-	employer: ''
+	equipment_name: '',
+	category: '',
+	calibration_organization: ''
 });
 
 const searchOpt = ref<FormOptionList[]>([
 	{ type: 'input', label: '航次任务名称：', prop: 'task_name' },
-	{ type: 'input', label: '姓名：', prop: 'name' },
-	{ type: 'input', label: '工作单位：', prop: 'employer' }
+	{ type: 'input', label: '仪器名称：', prop: 'equipment_name' },
+	{ type: 'select', label: '类别：', prop: 'category', options: [
+		{ label: '全部', value: '' },
+		{ label: '测量仪器', value: '测量仪器' },
+		{ label: '标准物质', value: '标准物质' },
+		{ label: '辅助设备', value: '辅助设备' },
+		{ label: '其他', value: '其他' }
+	]},
+	{ type: 'input', label: '检定机构：', prop: 'calibration_organization' }
 ]);
 
 const handleSearch = () => {
@@ -287,44 +319,51 @@ const columns = ref([
 		minWidth: 150
 	},
 	{
-		prop: 'name',
-		label: '姓名',
+		prop: 'category',
+		label: '类别',
+		minWidth: 100,
+		slot: 'category'
+	},
+	{
+		prop: 'equipment_name',
+		label: '仪器（标准物质）名称',
+		minWidth: 180
+	},
+	{
+		prop: 'serial_number',
+		label: '编号',
 		minWidth: 100
 	},
 	{
-		prop: 'sex',
-		label: '性别',
-		minWidth: 60,
-		slot: 'sex'
-	},
-	{
-		prop: 'birthdate',
-		label: '出生年月',
+		prop: 'model',
+		label: '型号',
 		minWidth: 100
 	},
 	{
-		prop: 'professional_title',
-		label: '职称',
-		minWidth: 100
-	},
-	{
-		prop: 'employer',
-		label: '工作单位',
+		prop: 'measurement_range',
+		label: '量程/测量方式',
 		minWidth: 150
 	},
 	{
-		prop: 'specialty',
-		label: '从事专业',
+		prop: 'calibration_date',
+		label: '检定/校准日期',
 		minWidth: 120
 	},
 	{
-		prop: 'instruments',
-		label: '本航次操作仪器',
-		minWidth: 150
+		prop: 'certificate_number',
+		label: '证书编号',
+		minWidth: 120,
+		slot: 'certificate_number'
 	},
 	{
-		prop: 'training',
-		label: '培训情况',
+		prop: 'validity_period',
+		label: '有效期',
+		minWidth: 120,
+		slot: 'validity_period'
+	},
+	{
+		prop: 'calibration_organization',
+		label: '检定/校准机构',
 		minWidth: 150
 	},
 	{
@@ -364,11 +403,11 @@ const getData = async () => {
 			...query
 		};
 
-		const res = await fetchPersonnelQualifications(params);
+		const res = await fetchEquipmentList(params);
 		tableData.value = res.data.list || [];
 		page.total = res.data.total || 0;
 	} catch (error) {
-		console.error('获取人员资质数据失败:', error);
+		console.error('获取设备数据失败:', error);
 		ElMessage.error('获取数据失败');
 	}
 };
@@ -388,14 +427,15 @@ const uploadRef = ref();
 
 const formData = ref({
 	task_name: '',
-	name: '',
-	sex: '男',
-	birthdate: '',
-	professional_title: '',
-	employer: '',
-	specialty: '',
-	instruments: '',
-	training: '',
+	category: '',
+	equipment_name: '',
+	serial_number: '',
+	model: '',
+	measurement_range: '',
+	calibration_date: '',
+	certificate_number: '',
+	validity_period: '',
+	calibration_organization: '',
 	remarks: '',
 	attachments: []
 });
@@ -404,34 +444,45 @@ const formRules = {
 	task_name: [
 		{ required: true, message: '请输入航次任务名称', trigger: 'blur' }
 	],
-	name: [
-		{ required: true, message: '请输入姓名', trigger: 'blur' }
+	category: [
+		{ required: true, message: '请选择设备类别', trigger: 'change' }
 	],
-	sex: [
-		{ required: true, message: '请选择性别', trigger: 'change' }
+	equipment_name: [
+		{ required: true, message: '请输入仪器（标准物质）名称', trigger: 'blur' }
 	],
-	birthdate: [
-		{ required: true, message: '请选择出生年月', trigger: 'change' }
+	serial_number: [
+		{ required: true, message: '请输入编号', trigger: 'blur' }
 	],
-	professional_title: [
-		{ required: true, message: '请输入职称', trigger: 'blur' }
-	],
-	employer: [
-		{ required: true, message: '请输入工作单位', trigger: 'blur' }
-	],
-	specialty: [
-		{ required: true, message: '请输入从事专业', trigger: 'blur' }
+	model: [
+		{ required: true, message: '请输入型号', trigger: 'blur' }
 	]
 };
 
 // 上传相关
-const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/upload`;
-const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/import`;
+const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/equipment/upload`;
+const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/equipment/import`;
 
 const uploadHeaders = computed(() => {
 	const token = localStorage.getItem('token');
 	return token ? { Authorization: `Bearer ${token}` } : {};
 });
+
+// 获取有效期状态样式
+const getValidityStatus = (validityPeriod: string) => {
+	if (!validityPeriod) return '';
+
+	const now = new Date();
+	const validity = new Date(validityPeriod);
+	const daysDiff = Math.ceil((validity.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+	if (daysDiff < 0) {
+		return 'expired'; // 已过期
+	} else if (daysDiff <= 30) {
+		return 'warning'; // 即将过期（30天内）
+	} else {
+		return 'valid'; // 有效
+	}
+};
 
 // 新增
 const handleAdd = () => {
@@ -452,7 +503,7 @@ const handleEdit = (row: TableItem) => {
 const handleDelete = async (row: TableItem) => {
 	try {
 		await ElMessageBox.confirm(
-			`确定要删除人员"${row.name}"的资质记录吗？此操作不可恢复！`,
+			`确定要删除设备"${row.equipment_name}"吗？此操作不可恢复！`,
 			'删除确认',
 			{
 				confirmButtonText: '确定删除',
@@ -461,7 +512,7 @@ const handleDelete = async (row: TableItem) => {
 			}
 		);
 
-		await deletePersonnelQualification(row.id);
+		await deleteEquipment(row.id);
 		ElMessage.success('删除成功');
 		getData();
 	} catch (error) {
@@ -479,9 +530,9 @@ const handleBatchDelete = async () => {
 	}
 
 	try {
-		const names = selectedRows.value.map(row => row.name).join('、');
+		const equipmentNames = selectedRows.value.map(row => row.equipment_name).join('、');
 		await ElMessageBox.confirm(
-			`确定要删除选中的 ${selectedRows.value.length} 条记录吗？此操作不可恢复！`,
+			`确定要删除选中的 ${selectedRows.value.length} 台设备吗？此操作不可恢复！`,
 			'批量删除确认',
 			{
 				confirmButtonText: '确定删除',
@@ -491,7 +542,7 @@ const handleBatchDelete = async () => {
 		);
 
 		const ids = selectedRows.value.map(row => row.id);
-		await batchDeletePersonnelQualifications(ids);
+		await batchDeleteEquipment(ids);
 		ElMessage.success('批量删除成功');
 		selectedRows.value = [];
 		getData();
@@ -515,10 +566,10 @@ const handleSubmit = async () => {
 		};
 
 		if (isEdit.value) {
-			await updatePersonnelQualification(formData.value.id, submitData);
+			await updateEquipment(formData.value.id, submitData);
 			ElMessage.success('更新成功');
 		} else {
-			await createPersonnelQualification(submitData);
+			await createEquipment(submitData);
 			ElMessage.success('新增成功');
 		}
 
@@ -557,13 +608,13 @@ const handleView = (row: TableItem) => {
 // 下载模板
 const handleDownloadTemplate = async () => {
 	try {
-		const response = await downloadExcelTemplate();
+		const response = await downloadEquipmentTemplate();
 		// 处理文件下载
 		const blob = new Blob([response.data]);
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = '人员资质模板.xlsx';
+		link.download = '设备模板.xlsx';
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -644,7 +695,6 @@ const handleFileRemove = (file: any) => {
 // 查看附件
 const handleViewAttachment = (row: TableItem) => {
 	if (row.attachments && row.attachments.length > 0) {
-		// 这里可以实现附件预览功能
 		ElMessage.info('附件预览功能开发中...');
 	}
 };
@@ -685,6 +735,35 @@ getData();
 	font-size: 12px;
 }
 
+.certificate-number {
+	font-family: 'Courier New', monospace;
+	font-size: 12px;
+}
+
+.validity-status {
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 12px;
+}
+
+.validity-status.valid {
+	background-color: #f0f9ff;
+	color: #0ea5e9;
+	border: 1px solid #0ea5e9;
+}
+
+.validity-status.warning {
+	background-color: #fff7ed;
+	color: #f59e0b;
+	border: 1px solid #f59e0b;
+}
+
+.validity-status.expired {
+	background-color: #fef2f2;
+	color: #ef4444;
+	border: 1px solid #ef4444;
+}
+
 .dialog-footer {
 	text-align: right;
 }
@@ -696,7 +775,7 @@ getData();
 }
 
 :deep(.el-descriptions__label) {
-	width: 120px;
+	width: 140px;
 	font-weight: 500;
 	color: #606266;
 }
