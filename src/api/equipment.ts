@@ -51,7 +51,7 @@ export const fetchEquipmentDetail = (id: number) => {
 export const batchDeleteEquipment = (ids: number[]) => {
     return request({
         url: '/equipment/batch-delete',
-        method: 'post',
+        method: 'delete',
         data: { ids }
     });
 };
@@ -103,5 +103,21 @@ export const fetchCalibrationOrganizations = () => {
     return request({
         url: '/equipment/organizations',
         method: 'get'
+    });
+};
+
+/**
+ * 上传仪器设备附件
+ * @param formData 包含文件的FormData
+ * @returns
+ */
+export const uploadEquipmentAttachment = (formData: FormData) => {
+    return request({
+        url: '/equipment/upload',
+        method: 'post',
+        data: formData,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
     });
 };

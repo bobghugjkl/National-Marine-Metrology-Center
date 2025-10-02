@@ -5,7 +5,7 @@ Flask 应用启动入口
 from flask import Flask, jsonify
 from config.database import init_db
 from config.cors import init_cors
-from controllers import user_bp, task_bp, inspection_bp, auth_bp, personnel_bp
+from controllers import user_bp, task_bp, inspection_bp, auth_bp, personnel_bp, equipment_bp, investigation_bp
 
 def create_app():
     """创建 Flask 应用"""
@@ -27,6 +27,8 @@ def create_app():
     app.register_blueprint(task_bp)
     app.register_blueprint(inspection_bp)
     app.register_blueprint(personnel_bp)
+    app.register_blueprint(equipment_bp)
+    app.register_blueprint(investigation_bp)
     
     # 健康检查接口
     @app.route('/api/health', methods=['GET'])

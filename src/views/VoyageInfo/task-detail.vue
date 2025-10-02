@@ -91,15 +91,11 @@
                 </div>
 
                 <div v-else-if="activeMenu === 'equipment-list'" class="content-section">
-                    <h2>仪器设备(工作计量器具)一览表</h2>
-                    <p>这是仪器设备一览表的内容区域，目前为空。</p>
-                    <el-empty description="暂无设备信息" />
+                    <equipment-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'investigation-projects'" class="content-section">
-                    <h2>外业调查项目/仪器比测统计表</h2>
-                    <p>这是外业调查项目统计表的内容区域，目前为空。</p>
-                    <el-empty description="暂无调查数据" />
+                    <investigation-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'during-voyage'" class="content-section">
@@ -207,6 +203,8 @@ import {
 } from '@element-plus/icons-vue';
 import InspectionRecordComponent from './inspection-record-component.vue';
 import PersonnelQualificationsComponent from './personnel-qualifications-component.vue';
+import EquipmentComponent from './equipment-component.vue';
+import InvestigationComponent from './investigation-component.vue';
 
 const route = useRoute();
 const router = useRouter();

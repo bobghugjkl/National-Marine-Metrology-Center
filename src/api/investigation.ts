@@ -51,7 +51,7 @@ export const fetchInvestigationDetail = (id: number) => {
 export const batchDeleteInvestigation = (ids: number[]) => {
     return request({
         url: '/investigation-projects/batch-delete',
-        method: 'post',
+        method: 'delete',
         data: { ids }
     });
 };
@@ -103,5 +103,21 @@ export const fetchComparisonUnits = () => {
     return request({
         url: '/investigation-projects/comparison-units',
         method: 'get'
+    });
+};
+
+/**
+ * 上传外业调查项目附件
+ * @param formData 包含文件的FormData
+ * @returns
+ */
+export const uploadInvestigationAttachment = (formData: FormData) => {
+    return request({
+        url: '/investigation-projects/upload',
+        method: 'post',
+        data: formData,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
     });
 };

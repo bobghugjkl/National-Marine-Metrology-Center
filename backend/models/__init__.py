@@ -5,5 +5,7 @@ from .user import User
 from .task import TaskInfo
 from .inspection import PreVoyageInspection
 from .master import BaseMaster
+from .equipment import Equipment
+from .investigation import InvestigationProject
 
-__all__ = ['User', 'TaskInfo', 'PreVoyageInspection', 'BaseMaster']
+__all__ = ['User', 'TaskInfo', 'PreVoyageInspection', 'BaseMaster', 'Equipment', 'InvestigationProject']
