@@ -143,7 +143,7 @@
                     <el-button v-else type="text" size="small" @click.stop="handleViewAttachment(row)">查看</el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center">
+            <el-table-column label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -638,6 +638,11 @@ onMounted(() => {
 <style scoped>
 .personnel-qualifications {
     padding: 20px;
+         /* 确保容器不超出 */
+ 
+  /* 防止内容横向溢出 */
+  overflow-x: hidden;
+
 }
 
 .toolbar {
@@ -657,7 +662,7 @@ onMounted(() => {
 }
 
 .personnel-table {
-    width: 100%;
+    width: 70%;
 }
 
 .task-name {

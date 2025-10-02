@@ -112,7 +112,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     }
                     
                     // 跳转到首页
-                    router.push('/');
+                    router.push('/dashboard');
                 } else {
                     ElMessage.error(res.data.message || '登录失败');
                 }

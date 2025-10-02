@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div width="100%" class="personnel-qualifications-list">
 		<!-- 页面标题和操作按钮 -->
 		<div class="page-header">
 			<h2>外业调查人员资质一览表</h2>

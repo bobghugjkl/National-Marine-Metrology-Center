@@ -10,23 +10,9 @@ export const menuData: Menus[] = [
     {
         id: '0', 
         title: '任务管理',
-        index: '0', 
-        icon: 'Star', 
-        children: [   
-            {
-                id: '01',
-                pid: '0',
-                index: '/system-user',
-                title: '新建任务',
-            },
-            {
-                id: '03',
-                pid: '0',
-                index: '/system-menu',
-                title: '任务管理',
-            },
-           
-        ],
+        index: '/system-user', 
+        icon: 'Document', 
+       
     },
     {
         id: '5',
@@ -60,7 +46,7 @@ export const menuData: Menus[] = [
         id: '9',
         title: '任务信息',
         index: '/task-info',
-        icon: 'Document',
+        icon: 'Star',
         permiss: '9',
     },
     {

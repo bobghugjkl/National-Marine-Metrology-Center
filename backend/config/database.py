@@ -12,7 +12,7 @@ db = SQLAlchemy()
 
 # 数据库配置
 DATABASE_CONFIG = {
-    'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:WASDijkl15963@localhost:3306/marine_survey_db?charset=utf8mb4',
+    'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:kinglion1973@localhost:3306/marine_survey_db?charset=utf8mb4',
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
     'JSON_AS_ASCII': False
 }

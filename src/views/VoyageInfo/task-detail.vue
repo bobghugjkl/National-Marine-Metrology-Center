@@ -359,10 +359,14 @@ onMounted(() => {
     flex: 1;
     padding: 24px;
     overflow-y: auto;
+    overflow-x: hidden; /* 防止横向溢出 */
+    
 }
 
 .content-section {
     min-height: 400px;
+         /* 确保容器不超出 */
+
 }
 
 .content-section h2 {

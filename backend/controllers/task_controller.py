@@ -33,7 +33,7 @@ def get_tasks(current_user):
                 'pageTotal': len(task_list)
             }
         })
-    except Exception as e:
+    except Exception as e:  
         return jsonify({'code': 500, 'message': str(e)}), 500
 
 @task_bp.route('/tasks', methods=['POST'])
@@ -134,6 +134,7 @@ def delete_task(current_user, task_name):
     """删除任务（同时删除检查记录 - JWT认证 + 权限验证）"""
     try:
         decoded_name = unquote(task_name)
+        print(f'尝试删除任务: {decoded_name}')
         task = db.session.get(TaskInfo, decoded_name)
         if not task:
             return jsonify({'code': 404, 'message': '任务不存在'}), 404
@@ -154,5 +155,6 @@ def delete_task(current_user, task_name):
         db.session.commit()
         return jsonify({'code': 200, 'message': '删除成功'})
     except Exception as e:
+        print(e)
         db.session.rollback()
         return jsonify({'code': 500, 'message': str(e)}), 500
