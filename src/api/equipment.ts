@@ -118,6 +118,7 @@ export const uploadEquipmentAttachment = (formData: FormData) => {
         data: formData,
         headers: {
             'Content-Type': 'multipart/form-data'
-        }
+        },
+        withCredentials: true
     });
 };

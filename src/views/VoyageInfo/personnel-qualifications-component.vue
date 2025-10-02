@@ -295,7 +295,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, defineProps } from 'vue';
+import { ref, reactive, onMounted, defineProps, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import { Plus, Delete, Upload, Download, Edit, Document, Check, Close } from '@element-plus/icons-vue';
 import * as XLSX from 'xlsx';
@@ -888,8 +888,16 @@ const loadData = async () => {
     }
 };
 
+// 监听任务名称变化，自动重新加载数据
+watch(() => props.taskName, (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+        console.log(`任务名称从 ${oldVal} 变更为 ${newVal}，重新加载数据`);
+        loadData();
+    }
+}, { immediate: true }); // immediate: true 确保组件挂载时也执行一次
+
 onMounted(() => {
-    loadData();
+    // loadData() 已由 watch 的 immediate: true 处理
 });
 </script>
 

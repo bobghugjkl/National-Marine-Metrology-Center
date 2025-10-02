@@ -98,6 +98,18 @@
                     <investigation-component :taskName="taskName" />
                 </div>
 
+                <div v-else-if="activeMenu === 'during-personnel'" class="content-section">
+                    <voyage-personnel-component :taskName="taskName" />
+                </div>
+
+                <div v-else-if="activeMenu === 'during-equipment'" class="content-section">
+                    <voyage-equipment-component :taskName="taskName" />
+                </div>
+
+                <div v-else-if="activeMenu === 'during-investigation'" class="content-section">
+                    <voyage-investigation-component :taskName="taskName" />
+                </div>
+
                 <div v-else-if="activeMenu === 'during-voyage'" class="content-section">
                     <h2>航中检查</h2>
                     <p>这是航中检查模块的总览，目前包含外业调查人员资质、仪器设备、工作日志等多个检查项目。</p>
@@ -117,21 +129,15 @@
                 </div>
 
                 <div v-else-if="activeMenu === 'supervisor-log'" class="content-section">
-                    <h2>监督员日志</h2>
-                    <p>这是监督员日志的内容区域，目前为空。</p>
-                    <el-empty description="暂无监督员日志" />
+                    <supervisor-log-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'original-records'" class="content-section">
-                    <h2>外业调查原始记录抽查表</h2>
-                    <p>这是原始记录抽查表的内容区域，目前为空。</p>
-                    <el-empty description="暂无抽查记录" />
+                    <original-records-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'procedure-execution'" class="content-section">
-                    <h2>外业调查操作规程执行统计表</h2>
-                    <p>这是操作规程执行统计表的内容区域，目前为空。</p>
-                    <el-empty description="暂无执行统计数据" />
+                    <procedure-execution-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'work-log'" class="content-section">
@@ -205,6 +211,12 @@ import InspectionRecordComponent from './inspection-record-component.vue';
 import PersonnelQualificationsComponent from './personnel-qualifications-component.vue';
 import EquipmentComponent from './equipment-component.vue';
 import InvestigationComponent from './investigation-component.vue';
+import VoyagePersonnelComponent from './voyage-personnel-component.vue';
+import VoyageEquipmentComponent from './voyage-equipment-component.vue';
+import VoyageInvestigationComponent from './voyage-investigation-component.vue';
+import SupervisorLogComponent from './supervisor-log-component.vue';
+import OriginalRecordsComponent from './original-records-component.vue';
+import ProcedureExecutionComponent from './procedure-execution-component.vue';
 
 const route = useRoute();
 const router = useRouter();

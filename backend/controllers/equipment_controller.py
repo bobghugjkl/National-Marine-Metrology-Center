@@ -32,9 +32,16 @@ def get_equipment_list(current_user):
         if user_role != 'admin':
             query = query.filter(Equipment.user_id == user_id)
 
-        # 按任务名称筛选
+        # 按任务名称筛选（必须过滤，确保数据隔离）
         if task_name:
             query = query.filter(Equipment.task_name == task_name)
+        else:
+            # 如果没有传递任务名称，返回空结果（安全考虑）
+            return jsonify({
+                'code': 200,
+                'msg': '获取成功',
+                'data': []
+            })
 
         # 按设备名称筛选
         if name:

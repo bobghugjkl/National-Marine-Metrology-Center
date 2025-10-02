@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, defineProps, defineEmits } from 'vue';
+import { ref, reactive, onMounted, defineProps, defineEmits, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { fetchInspectionByTask, updateInspection } from '@/api/inspection';
 
@@ -306,8 +306,16 @@ const cancel = () => {
     emit('cancel');
 };
 
+// 监听任务名称变化，自动重新加载数据
+watch(() => props.taskName, (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+        console.log(`任务名称从 ${oldVal} 变更为 ${newVal}，重新加载数据`);
+        getData();
+    }
+}, { immediate: true }); // immediate: true 确保组件挂载时也执行一次
+
 onMounted(() => {
-    getData();
+    // getData() 已由 watch 的 immediate: true 处理
 });
 </script>
 

@@ -308,6 +308,27 @@
                         placeholder="请输入备注"
                     ></el-input>
                 </el-form-item>
+                <el-form-item label="附件上传">
+                    <el-upload
+                        ref="dialogUploadRef"
+                        class="dialog-upload"
+                        action=""
+                        :http-request="handleDialogAttachmentUpload"
+                        :file-list="formData.attachmentList || []"
+                        :show-file-list="true"
+                        list-type="text"
+                        multiple
+                        :limit="5"
+                        :on-remove="handleDialogAttachmentRemove"
+                    >
+                        <el-button type="primary" size="small">选择文件</el-button>
+                        <template #tip>
+                            <div class="el-upload__tip">
+                                支持jpg/png/pdf等格式,单个文件不超过10MB
+                            </div>
+                        </template>
+                    </el-upload>
+                </el-form-item>
             </el-form>
             <template #footer>
                 <span class="dialog-footer">
@@ -320,7 +341,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
     Plus,
@@ -395,7 +416,8 @@ const formData = reactive<Equipment>({
     certificate_number: '',
     validity_period: '',
     calibration_organization: '',
-    remarks: ''
+    remarks: '',
+    attachmentList: []
 });
 
 // 表单验证规则
@@ -479,7 +501,8 @@ const handleAddRow = () => {
         certificate_number: '',
         validity_period: '',
         calibration_organization: '',
-        remarks: ''
+        remarks: '',
+        attachmentList: []
     });
 
     dialogVisible.value = true;
@@ -780,10 +803,47 @@ const handleCurrentChange = (current: number) => {
     loadData();
 };
 
+// 对话框附件上传处理
+const handleDialogAttachmentUpload = async (params: any) => {
+    try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', params.file);
+        
+        const response = await uploadEquipmentAttachment(uploadFormData);
+        if (response && response.code === 200) {
+            // 初始化attachmentList
+            if (!formData.attachmentList) {
+                formData.attachmentList = [];
+            }
+
+            // 添加新附件
+            formData.attachmentList.push({
+                name: response.data.name,
+                url: response.data.url,
+                uid: response.data.uid
+            });
+
+            ElMessage.success('附件上传成功');
+        } else {
+            ElMessage.error(response?.msg || '附件上传失败');
+        }
+    } catch (error) {
+        console.error('附件上传失败:', error);
+        ElMessage.error('附件上传失败');
+    }
+};
+
+// 对话框附件删除处理
+const handleDialogAttachmentRemove = (file: any, fileList: any[]) => {
+    formData.attachmentList = fileList;
+};
+
 // 对话框相关方法
 const handleDialogClose = () => {
     dialogVisible.value = false;
     formRef.value?.resetFields();
+    // 重置附件列表
+    formData.attachmentList = [];
 };
 
 const handleDialogSubmit = async () => {
@@ -804,7 +864,7 @@ const handleDialogSubmit = async () => {
                     validity_period: formData.validity_period,
                     calibration_organization: formData.calibration_organization,
                     remarks: formData.remarks,
-                    attachmentList: []
+                    attachmentList: formData.attachmentList || []
                 };
 
                 if (isEdit.value && editingId.value) {
@@ -836,9 +896,17 @@ const handleDialogSubmit = async () => {
     });
 };
 
+// 监听任务名称变化，自动重新加载数据
+watch(() => props.taskName, (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+        console.log(`任务名称从 ${oldVal} 变更为 ${newVal}，重新加载数据`);
+        loadData();
+    }
+}, { immediate: true }); // immediate: true 确保组件挂载时也执行一次
+
 // 生命周期
 onMounted(() => {
-    loadData();
+    // loadData() 已由 watch 的 immediate: true 处理
 });
 </script>
 
@@ -961,5 +1029,14 @@ onMounted(() => {
 
 :deep(.attachment-dialog .el-message-box__content::-webkit-scrollbar-thumb:hover) {
     background: #909399;
+}
+
+/* 对话框附件上传样式 */
+.dialog-upload {
+    width: 100%;
+}
+
+.dialog-upload .el-button {
+    margin: 0;
 }
 </style>

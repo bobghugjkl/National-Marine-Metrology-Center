@@ -4,8 +4,8 @@ const service: AxiosInstance = axios.create({
     // 恢复原始baseURL配置
     baseURL: 'http://localhost:5000/api',
     timeout: 10000,
-    // 允许跨域请求携带凭证
-    withCredentials: true
+    // 移除withCredentials以避免CORS问题
+    withCredentials: false
 });
 
 service.interceptors.request.use(
