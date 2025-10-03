@@ -10,7 +10,7 @@ export const menuData: Menus[] = [
     {
         id: '0', 
         title: '任务管理',
-        index: '/system-user', 
+        index: '/task-manage', 
         icon: 'Document', 
        
     },
