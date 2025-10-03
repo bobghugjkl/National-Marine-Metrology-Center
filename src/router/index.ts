@@ -69,6 +69,42 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
             },
             {
+                path: '/expert-talent',
+                name: 'expert-talent',
+                meta: {
+                    title: '专家人才管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "expert-talent" */ '../views/system/expert-talent.vue'),
+            },
+            {
+                path: '/task-unit',
+                name: 'task-unit',
+                meta: {
+                    title: '任务单位管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "task-unit" */ '../views/system/task-unit.vue'),
+            },
+            {
+                path: '/investigation-personnel',
+                name: 'investigation-personnel',
+                meta: {
+                    title: '调查人员',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "investigation-personnel" */ '../views/system/investigation-personnel.vue'),
+            },
+            {
+                path: '/equipment-management',
+                name: 'equipment-management',
+                meta: {
+                    title: '仪器设备管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "equipment-management" */ '../views/system/equipment-management.vue'),
+            },
+            {
                 path: '/table',
                 name: 'basetable',
                 meta: {

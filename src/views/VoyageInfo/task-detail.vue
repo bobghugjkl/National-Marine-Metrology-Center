@@ -81,9 +81,7 @@
                 </div>
 
                 <div v-else-if="activeMenu === 'pre-voyage-summary'" class="content-section">
-                    <h2>航前质量监督情况汇总表</h2>
-                    <p>这是航前质量监督情况汇总表的内容区域，目前为空。</p>
-                    <el-empty description="暂无汇总数据" />
+                    <pre-summary-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'personnel-list'" class="content-section">
@@ -141,27 +139,19 @@
                 </div>
 
                 <div v-else-if="activeMenu === 'work-log'" class="content-section">
-                    <h2>外业调查工作日志抽查表</h2>
-                    <p>这是工作日志抽查表的内容区域，目前为空。</p>
-                    <el-empty description="暂无工作日志" />
+                    <work-log-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'sample-storage'" class="content-section">
-                    <h2>外业调查样品储存记录抽查表</h2>
-                    <p>这是样品储存记录抽查表的内容区域，目前为空。</p>
-                    <el-empty description="暂无储存记录" />
+                    <sample-storage-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'ship-quality'" class="content-section">
-                    <h2>随船质量监督检查表</h2>
-                    <p>这是随船质量监督检查表的内容区域，目前为空。</p>
-                    <el-empty description="暂无检查记录" />
+                    <onboard-inspection-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'post-voyage-record'" class="content-section">
-                    <h2>航后检查表</h2>
-                    <p>这是航后检查表的内容区域，目前为空。</p>
-                    <el-empty description="暂无航后检查记录" />
+                    <post-inspection-component :taskName="taskName" />
                 </div>
 
                 <div v-else-if="activeMenu === 'import-export'" class="content-section">
@@ -217,6 +207,11 @@ import VoyageInvestigationComponent from './voyage-investigation-component.vue';
 import SupervisorLogComponent from './supervisor-log-component.vue';
 import OriginalRecordsComponent from './original-records-component.vue';
 import ProcedureExecutionComponent from './procedure-execution-component.vue';
+import WorkLogComponent from './work-log-component.vue';
+import SampleStorageComponent from './sample-storage-component.vue';
+import PostInspectionComponent from './post-inspection-component.vue';
+import PreSummaryComponent from './pre-summary-component.vue';
+import OnboardInspectionComponent from './onboard-inspection-component.vue';
 
 const route = useRoute();
 const router = useRouter();

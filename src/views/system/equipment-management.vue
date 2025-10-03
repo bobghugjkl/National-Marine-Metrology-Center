@@ -1,61 +1,30 @@
 <template>
-    <div class="investigation-personnel">
+    <div class="equipment-management">
         <!-- 筛选区域 -->
         <div class="filter-section">
             <el-form :model="filterForm" inline class="filter-form">
-                <el-form-item label="姓名:">
-                    <el-input v-model="filterForm.name" placeholder="请输入姓名" clearable style="width: 150px"></el-input>
-                </el-form-item>
-                <el-form-item label="性别:">
-                    <el-select v-model="filterForm.sex" placeholder="请选择性别" clearable style="width: 120px">
-                        <el-option label="男" value="男"></el-option>
-                        <el-option label="女" value="女"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="职称:">
-                    <el-select v-model="filterForm.professional_title" placeholder="请选择职称" clearable style="width: 150px">
-                        <el-option label="高级工程师" value="高级工程师"></el-option>
-                        <el-option label="工程师" value="工程师"></el-option>
-                        <el-option label="助理工程师" value="助理工程师"></el-option>
-                        <el-option label="研究员" value="研究员"></el-option>
-                        <el-option label="副研究员" value="副研究员"></el-option>
-                        <el-option label="助理研究员" value="助理研究员"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="工作单位:">
-                    <el-select v-model="filterForm.employer" placeholder="请选择工作单位" clearable style="width: 200px">
-                        <el-option label="海洋研究所" value="海洋研究所"></el-option>
-                        <el-option label="海洋大学" value="海洋大学"></el-option>
-                        <el-option label="海洋局" value="海洋局"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="从事专业:">
-                    <el-select v-model="filterForm.specialty" placeholder="请选择专业" clearable style="width: 150px">
-                        <el-option label="海洋地质" value="海洋地质"></el-option>
-                        <el-option label="海洋化学" value="海洋化学"></el-option>
-                        <el-option label="物理海洋" value="物理海洋"></el-option>
-                        <el-option label="海洋生物" value="海洋生物"></el-option>
-                    </el-select>
-                </el-form-item>
-            </el-form>
-            <el-form :model="filterForm" inline class="filter-form">
-                <el-form-item label="操作仪器:">
-                    <el-input v-model="filterForm.instruments" placeholder="请输入操作仪器" clearable style="width: 200px"></el-input>
-                </el-form-item>
                 <el-form-item label="航次任务名称:">
                     <el-input v-model="filterForm.task_name" placeholder="请输入航次任务名称" clearable style="width: 200px"></el-input>
                 </el-form-item>
-                <el-form-item label="出生年月:">
-                    <el-date-picker
-                        v-model="filterForm.birthdate_range"
-                        type="daterange"
-                        range-separator="至"
-                        start-placeholder="开始日期"
-                        end-placeholder="结束日期"
-                        format="YYYY-MM-DD"
-                        value-format="YYYY-MM-DD"
-                        style="width: 240px"
-                    />
+                <el-form-item label="仪器类型:">
+                    <el-select v-model="filterForm.instrument_type" placeholder="请选择仪器类型" clearable style="width: 150px">
+                        <el-option label="仪器" value="仪器"></el-option>
+                        <el-option label="标准物质" value="标准物质"></el-option>
+                        <el-option label="计量器具" value="计量器具"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="仪器名称:">
+                    <el-input v-model="filterForm.instrument_name" placeholder="请输入仪器名称" clearable style="width: 200px"></el-input>
+                </el-form-item>
+                <el-form-item label="量值溯源:">
+                    <el-select v-model="filterForm.traceability" placeholder="请选择量值溯源" clearable style="width: 150px">
+                        <el-option label="检定" value="检定"></el-option>
+                        <el-option label="校准" value="校准"></el-option>
+                        <el-option label="比对" value="比对"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="检定/校准机构:">
+                    <el-input v-model="filterForm.calibration_institution" placeholder="请输入检定/校准机构" clearable style="width: 200px"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -70,7 +39,7 @@
                 <el-button type="warning" :icon="Download" @click="handleExport">导出Excel</el-button>
             </div>
             <div class="toolbar-right">
-                <span class="info-text">数据来源：航前调查人员资质一览表 + 航中外业调查人员表</span>
+                <span class="info-text">数据来源：仪器设备(工作计量器具)一览表 + 仪器设备(工作计量器具)一览表(航中)</span>
             </div>
         </div>
 
@@ -80,7 +49,7 @@
             :data="tableData"
             border
             stripe
-            class="investigation-personnel-table"
+            class="equipment-management-table"
             @selection-change="handleSelectionChange"
         >
             <el-table-column type="selection" width="55"></el-table-column>
@@ -90,44 +59,49 @@
                     <span>{{ row.task_name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="name" label="姓名" width="120" align="center">
+            <el-table-column prop="category" label="类别" width="120" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.name }}</span>
+                    <span>{{ row.category }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="sex" label="性别" width="80" align="center">
+            <el-table-column prop="instrument_name" label="仪器(标准物质)名称" min-width="200">
                 <template #default="{ row }">
-                    <span>{{ row.sex }}</span>
+                    <span>{{ row.instrument_name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="birthdate" label="出生年月" width="120" align="center">
+            <el-table-column prop="instrument_number" label="编号" width="120" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.birthdate }}</span>
+                    <span>{{ row.instrument_number }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="professional_title" label="职称" width="120" align="center">
+            <el-table-column prop="model" label="型号" width="120" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.professional_title }}</span>
+                    <span>{{ row.model }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="employer" label="工作单位" min-width="200">
+            <el-table-column prop="traceability_method" label="量值溯源方式" min-width="150">
                 <template #default="{ row }">
-                    <span>{{ row.employer }}</span>
+                    <span>{{ row.traceability_method }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="specialty" label="从事专业" min-width="150">
+            <el-table-column prop="calibration_date" label="检定/校准日期" width="150" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.specialty }}</span>
+                    <span>{{ row.calibration_date }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="instruments" label="操作仪器" min-width="200">
+            <el-table-column prop="certificate_number" label="证书编号" width="150" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.instruments }}</span>
+                    <span>{{ row.certificate_number }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="training" label="培训情况" min-width="150">
+            <el-table-column prop="validity_period" label="有效期" width="120" align="center">
                 <template #default="{ row }">
-                    <span>{{ row.training }}</span>
+                    <span>{{ row.validity_period }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="calibration_institution" label="检定/校准机构" min-width="200">
+                <template #default="{ row }">
+                    <span>{{ row.calibration_institution }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="remarks" label="备注" min-width="150">
@@ -166,18 +140,15 @@
 import { ref, reactive, onMounted, onActivated } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Download } from '@element-plus/icons-vue';
-import { fetchInvestigationPersonnelList, exportInvestigationPersonnel } from '@/api/investigation-personnel';
+import { fetchEquipmentManagementList, exportEquipmentManagement } from '@/api/equipment-management';
 
 // 筛选表单
 const filterForm = reactive({
-    name: '',
-    sex: '',
-    professional_title: '',
-    employer: '',
-    specialty: '',
-    instruments: '',
     task_name: '',
-    birthdate_range: []
+    instrument_type: '',
+    instrument_name: '',
+    traceability: '',
+    calibration_institution: ''
 });
 
 // 表格数据
@@ -198,18 +169,14 @@ const loadData = async () => {
         const params = {
             page: pagination.page,
             page_size: pagination.pageSize,
-            name: filterForm.name,
-            sex: filterForm.sex,
-            professional_title: filterForm.professional_title,
-            employer: filterForm.employer,
-            specialty: filterForm.specialty,
-            instruments: filterForm.instruments,
             task_name: filterForm.task_name,
-            birthdate_start: filterForm.birthdate_range?.[0] || '',
-            birthdate_end: filterForm.birthdate_range?.[1] || ''
+            instrument_type: filterForm.instrument_type,
+            instrument_name: filterForm.instrument_name,
+            traceability: filterForm.traceability,
+            calibration_institution: filterForm.calibration_institution
         };
         
-        const res = await fetchInvestigationPersonnelList(params);
+        const res = await fetchEquipmentManagementList(params);
         if (res.code === 200) {
             tableData.value = res.data.list;
             pagination.total = res.data.total;
@@ -217,7 +184,7 @@ const loadData = async () => {
             ElMessage.error(res.message || '获取数据失败');
         }
     } catch (error: any) {
-        console.error('获取调查人员列表失败:', error);
+        console.error('获取仪器设备管理列表失败:', error);
         ElMessage.error('获取数据失败: ' + (error.message || '未知错误'));
     }
 };
@@ -231,14 +198,11 @@ const handleSearch = () => {
 // 重置筛选
 const handleReset = () => {
     Object.assign(filterForm, {
-        name: '',
-        sex: '',
-        professional_title: '',
-        employer: '',
-        specialty: '',
-        instruments: '',
         task_name: '',
-        birthdate_range: []
+        instrument_type: '',
+        instrument_name: '',
+        traceability: '',
+        calibration_institution: ''
     });
     handleSearch();
 };
@@ -263,7 +227,7 @@ const handleCurrentChange = (page: number) => {
 // 导出Excel
 const handleExport = async () => {
     try {
-        const res = await exportInvestigationPersonnel();
+        const res = await exportEquipmentManagement();
         if (res.code === 200) {
             // 这里可以实现Excel导出逻辑
             ElMessage.success('导出功能待实现');
@@ -287,7 +251,7 @@ onActivated(() => {
 </script>
 
 <style scoped>
-.investigation-personnel {
+.equipment-management {
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
@@ -329,7 +293,7 @@ onActivated(() => {
     font-size: 14px;
 }
 
-.investigation-personnel-table {
+.equipment-management-table {
     width: 100%;
     margin-bottom: 20px;
 }

@@ -9,7 +9,8 @@ CORS_CONFIG = {
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "Accept", "X-Requested-With"],
         "supports_credentials": True,
-        "expose_headers": ["Content-Type", "Authorization"]
+        "expose_headers": ["Content-Type", "Authorization"],
+        "vary_header": False
     }
 }
 
