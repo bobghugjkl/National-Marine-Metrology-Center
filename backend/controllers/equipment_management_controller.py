@@ -56,73 +56,78 @@ def get_equipment_management_list():
         traceability = request.args.get('traceability', '').strip()
         calibration_institution = request.args.get('calibration_institution', '').strip()
         
-        # 分别查询两个表，然后合并结果
-        # 查询tb_equipment表
-        sql_equipment = """
-        SELECT 
-            'pre_voyage' as source_type,
-            id,
-            task_name,
-            category,
-            name as instrument_name,
-            number as instrument_number,
-            model,
-            traceability_method,
-            calibration_date,
-            certificate_number,
-            validity_period,
-            calibration_organization as calibration_institution,
-            remarks,
-            attachments,
-            user_id,
-            create_time,
-            update_time
-        FROM tb_equipment 
-        WHERE user_id = :user_id
-        """
+        # 使用原生SQL直接查询两个表的所有数据
+        try:
+            # 打印用户ID
+            current_app.logger.info(f'查询用户ID: {user_id}')
+            
+            # 直接使用UNION ALL查询两个表
+            sql = """
+            SELECT 
+                'pre_voyage' as source_type,
+                id,
+                task_name,
+                category,
+                name as instrument_name,
+                number as instrument_number,
+                model,
+                traceability_method,
+                calibration_date,
+                certificate_number,
+                validity_period,
+                calibration_organization as calibration_institution,
+                remarks,
+                attachments,
+                user_id,
+                create_time,
+                update_time
+            FROM tb_equipment 
+            WHERE user_id = :user_id
+            
+            UNION ALL
+            
+            SELECT 
+                'during_voyage' as source_type,
+                id,
+                task_name,
+                category,
+                name as instrument_name,
+                number as instrument_number,
+                model,
+                traceability_method,
+                calibration_date,
+                certificate_number,
+                validity_period,
+                calibration_organization as calibration_institution,
+                remarks,
+                attachments,
+                user_id,
+                create_time,
+                update_time
+            FROM tb_voyage_equipment 
+            WHERE user_id = :user_id
+            """
+            
+            # 执行查询
+            result = db.session.execute(text(sql), {'user_id': user_id}).fetchall()
+            current_app.logger.info(f'UNION ALL查询结果数量: {len(result)}')
+            
+            # 打印查询结果的前几条
+            if result:
+                current_app.logger.info(f'查询结果第一条: {result[0]}')
+                if len(result) > 1:
+                    current_app.logger.info(f'查询结果第二条: {result[1]}')
         
-        # 查询tb_voyage_equipment表
-        sql_voyage_equipment = """
-        SELECT 
-            'during_voyage' as source_type,
-            id,
-            task_name,
-            category,
-            name as instrument_name,
-            number as instrument_number,
-            model,
-            traceability_method,
-            calibration_date,
-            certificate_number,
-            validity_period,
-            calibration_organization as calibration_institution,
-            remarks,
-            attachments,
-            user_id,
-            create_time,
-            update_time
-        FROM tb_voyage_equipment 
-        WHERE user_id = :user_id
-        """
-        
-        # 执行两个查询
-        result_equipment = db.session.execute(text(sql_equipment), {'user_id': user_id}).fetchall()
-        result_voyage_equipment = db.session.execute(text(sql_voyage_equipment), {'user_id': user_id}).fetchall()
-        
-        # 合并结果
-        result = list(result_equipment) + list(result_voyage_equipment)
+        except Exception as e:
+            current_app.logger.error(f'查询数据库出错: {str(e)}')
+            return jsonify({
+                'code': 500,
+                'message': f'查询数据库出错: {str(e)}'
+            })
         
         # 添加调试日志
-        current_app.logger.info(f'tb_equipment查询结果数量: {len(result_equipment)}')
-        current_app.logger.info(f'tb_voyage_equipment查询结果数量: {len(result_voyage_equipment)}')
-        current_app.logger.info(f'合并后结果数量: {len(result)}')
+        current_app.logger.info(f'查询结果数量: {len(result)}')
         current_app.logger.info(f'用户ID: {user_id}')
-        
-        # 详细调试信息
-        if result_equipment:
-            current_app.logger.info(f'tb_equipment第一条数据: {result_equipment[0]}')
-        if result_voyage_equipment:
-            current_app.logger.info(f'tb_voyage_equipment第一条数据: {result_voyage_equipment[0]}')
         
         # 检查数据库中所有数据
         all_equipment_count = db.session.execute(text('SELECT COUNT(*) FROM tb_equipment')).fetchone()[0]
@@ -202,12 +207,9 @@ def get_equipment_management_list():
                 db.session.commit()
                 current_app.logger.info('测试数据添加成功')
                 
-                # 重新查询数据
-                result_equipment = db.session.execute(text(sql_equipment), {'user_id': user_id}).fetchall()
-                result_voyage_equipment = db.session.execute(text(sql_voyage_equipment), {'user_id': user_id}).fetchall()
-                result = list(result_equipment) + list(result_voyage_equipment)
-                current_app.logger.info(f'添加测试数据后，tb_equipment查询结果数量: {len(result_equipment)}')
-                current_app.logger.info(f'添加测试数据后，合并后结果数量: {len(result)}')
+                # 重新执行查询
+                result = db.session.execute(text(sql), {'user_id': user_id}).fetchall()
+                current_app.logger.info(f'添加测试数据后，查询结果数量: {len(result)}')
                 
             except Exception as e:
                 current_app.logger.error(f'添加测试数据失败: {e}')
@@ -218,9 +220,9 @@ def get_equipment_management_list():
         # 直接处理所有数据，不进行合并
         all_equipment_list = []
         for row in result:
-            # 安全获取字段值，避免AttributeError
-            instrument_name = getattr(row, 'instrument_name', '')
-            instrument_number = getattr(row, 'instrument_number', '')
+            # 安全获取字段值，避免AttributeError（避免与查询参数同名导致覆盖）
+            row_instrument_name = getattr(row, 'instrument_name', '')
+            row_instrument_number = getattr(row, 'instrument_number', '')
             
             # 确定数据来源
             source_type = '航前' if row.source_type == 'pre_voyage' else '航中'
@@ -229,8 +231,8 @@ def get_equipment_management_list():
                 'id': row.id,
                 'task_name': row.task_name,
                 'category': row.category,
-                'instrument_name': instrument_name,
-                'instrument_number': instrument_number,
+                'instrument_name': row_instrument_name,
+                'instrument_number': row_instrument_number,
                 'model': row.model,
                 'traceability_method': row.traceability_method,
                 'calibration_date': str(row.calibration_date) if row.calibration_date else None,

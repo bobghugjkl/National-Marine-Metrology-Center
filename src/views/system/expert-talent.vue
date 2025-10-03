@@ -250,6 +250,7 @@ import { ref, reactive, onMounted, onActivated } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Delete, Upload, Download, Document } from '@element-plus/icons-vue';
 import { fetchExpertTalentList, createExpertTalent, updateExpertTalent, deleteExpertTalent, batchDeleteExpertTalent } from '@/api/expert-talent';
+import * as XLSX from 'xlsx';
 
 // 筛选表单
 const filterForm = reactive({
@@ -461,9 +462,48 @@ const handleImport = (file: any) => {
     ElMessage.info('导入功能待实现');
 };
 
-// 导出Excel
-const handleExport = () => {
-    ElMessage.info('导出功能待实现');
+// 导出Excel（导出当前筛选条件下的全部数据，不受分页限制）
+const handleExport = async () => {
+    try {
+        const params = {
+            page: 1,
+            page_size: 100000,
+            ...filterForm
+        };
+
+        const res = await fetchExpertTalentList(params);
+        if (res.code !== 200) {
+            ElMessage.error(res.message || '导出失败');
+            return;
+        }
+
+        const rows = (res.data.list || []).map((row: any) => ({
+            '姓名': row.name ?? '',
+            '性别': row.gender ?? '',
+            '出生年月': row.birth_date ?? '',
+            '职称': row.job_title ?? '',
+            '工作单位': row.work_unit ?? '',
+            '从事专业': row.specialty ?? '',
+            '联系方式': row.contact_info ?? '',
+            '身份证号': row.id_number ?? '',
+            '银行卡号': row.bank_card_number ?? '',
+            '开户行': row.opening_bank ?? '',
+            '备注': row.remarks ?? ''
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, '专家人才');
+
+        const ts = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const fileName = `专家人才_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        ElMessage.success('导出成功');
+    } catch (error: any) {
+        console.error('导出失败:', error);
+        ElMessage.error('导出失败: ' + (error.message || '未知错误'));
+    }
 };
 
 // 保存所有
