@@ -46,12 +46,12 @@ def get_expected_fields():
     expected_fields = {
         'tb_user': [
             {'name': 'id', 'type': 'int', 'nullable': False},
-            {'name': 'name', 'type': 'varchar', 'length': 50, 'nullable': False},
-            {'name': 'login_name', 'type': 'varchar', 'length': 50, 'nullable': False},
-            {'name': 'password', 'type': 'varchar', 'length': 100, 'nullable': False},
-            {'name': 'sex', 'type': 'varchar', 'length': 10, 'nullable': True},
-            {'name': 'department', 'type': 'varchar', 'length': 100, 'nullable': True},
-            {'name': 'role', 'type': 'varchar', 'length': 20, 'nullable': True},
+            {'name': 'name', 'type': 'varchar', 'length': 45, 'nullable': False},  # 兼容其他电脑的45长度
+            {'name': 'login_name', 'type': 'varchar', 'length': 45, 'nullable': True},  # 兼容其他电脑的45长度
+            {'name': 'password', 'type': 'varchar', 'length': 45, 'nullable': True},  # 兼容其他电脑的45长度
+            {'name': 'sex', 'type': 'varchar', 'length': 45, 'nullable': True},  # 兼容其他电脑的45长度
+            {'name': 'department', 'type': 'varchar', 'length': 255, 'nullable': False},  # 兼容其他电脑的255长度
+            {'name': 'role', 'type': 'varchar', 'length': 45, 'nullable': True},  # 兼容其他电脑的45长度
             {'name': 'email', 'type': 'varchar', 'length': 100, 'nullable': True},
             {'name': 'phone', 'type': 'varchar', 'length': 20, 'nullable': True},
             {'name': 'signature', 'type': 'text', 'nullable': True},
