@@ -3,6 +3,7 @@ JWT 工具函数
 用于生成和验证 JWT token
 """
 import jwt
+import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify
@@ -112,4 +113,29 @@ def token_required(f):
             return jsonify({'code': 401, 'message': f'Token验证失败: {str(e)}'}), 401
     
     return decorated
+
+def hash_password(password: str) -> str:
+    """
+    对密码进行哈希加密
+    
+    Args:
+        password: 原始密码
+        
+    Returns:
+        加密后的密码字符串
+    """
+    return hashlib.md5(password.encode('utf-8')).hexdigest()
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """
+    验证密码是否正确
+    
+    Args:
+        password: 原始密码
+        hashed_password: 加密后的密码
+        
+    Returns:
+        密码是否正确
+    """
+    return hash_password(password) == hashed_password
 

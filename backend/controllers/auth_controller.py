@@ -4,7 +4,7 @@
 from flask import Blueprint, request, jsonify
 from models import User
 from config.database import db
-from utils.jwt_utils import generate_token
+from utils.jwt_utils import generate_token, verify_password
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -23,7 +23,8 @@ def login():
             (User.name == username) | (User.login_name == username)
         ).first()
 
-        if not user or user.password != password:
+        # 兼容明文和加密密码验证
+        if not user or (user.password != password and not verify_password(password, user.password)):
             return jsonify({'code': 401, 'message': '用户名或密码不正确'}), 401
 
         # 生成 JWT token

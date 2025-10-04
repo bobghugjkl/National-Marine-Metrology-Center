@@ -18,6 +18,16 @@ def create_app():
     # 初始化数据库
     init_db(app)
 
+    # 自动检查并添加用户表缺失字段
+    with app.app_context():
+        from auto_migrate_user_fields import run_migration
+        run_migration()
+    
+    # 全面检查所有表字段（可选，根据需要启用）
+    # with app.app_context():
+    #     from check_all_tables_fields import run_comprehensive_check
+    #     run_comprehensive_check()
+
     # 初始化 CORS
     init_cors(app)
     

@@ -170,7 +170,7 @@ export const menuData: Menus[] = [
             {
                 id: '11',
                 pid: '1',
-                index: '/system-user',
+                index: '/user-profile',
                 title: '用户管理',
             },
             {
