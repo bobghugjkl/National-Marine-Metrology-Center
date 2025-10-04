@@ -10,7 +10,7 @@
         >
             <template v-for="item in filteredMenuData">
                 <template v-if="item.children">
-                    <el-sub-menu :index="item.index" :key="item.index" v-permiss="item.id">
+                    <el-sub-menu :index="item.index" :key="item.index" v-permiss="item.permiss || item.id">
                         <template #title>
                             <el-icon>
                                 <component :is="item.icon"></component>
@@ -22,7 +22,7 @@
                                 v-if="subItem.children"
                                 :index="subItem.index"
                                 :key="subItem.index"
-                                v-permiss="item.id"
+                                v-permiss="subItem.permiss || item.id"
                             >
                                 <template #title>{{ subItem.title }}</template>
                                 <el-menu-item
@@ -33,14 +33,14 @@
                                     {{ threeItem.title }}
                                 </el-menu-item>
                             </el-sub-menu>
-                            <el-menu-item v-else :index="subItem.index" v-permiss="item.id">
+                            <el-menu-item v-else :index="subItem.index" v-permiss="subItem.permiss || item.id">
                                 {{ subItem.title }}
                             </el-menu-item>
                         </template>
                     </el-sub-menu>
                 </template>
                 <template v-else>
-                    <el-menu-item :index="item.index" :key="item.index" v-permiss="item.id">
+                    <el-menu-item :index="item.index" :key="item.index" v-permiss="item.permiss || item.id">
                         <el-icon>
                             <component :is="item.icon"></component>
                         </el-icon>
@@ -60,7 +60,7 @@ import { menuData } from '@/components/menu';
 
 
 // Assume userPermissions is fetched from a store or API
-const userPermissions = [ '0', '01','02','03','1', '11', '12', '13','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42']; // Example permissions
+const userPermissions = [ '0', '01','02','03','1', '11', '12', '13', '14','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42','5','6','7','8','9']; // Example permissions
 
 // Filter menuData based on user permissions
 const filteredMenuData = computed(() => {
@@ -115,7 +115,7 @@ const sidebar = useSidebarStore();
 }
 
 .sidebar-el-menu:not(.el-menu--collapse) {
-    width: 250px;
+    width: 180px;
 }
 
 .sidebar-el-menu {

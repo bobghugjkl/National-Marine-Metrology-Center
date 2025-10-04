@@ -36,7 +36,7 @@
             </div>
         </div>
         <el-table class="mgb20" :style="{ width: '100%' }" border :data="tableData" :row-key="rowKey"
-            @selection-change="handleSelectionChange" table-layout="auto">
+            @selection-change="handleSelectionChange" @row-click="handleRowClick" table-layout="auto">
             <template v-for="item in columns" :key="item.prop">
                 <el-table-column v-if="item.visible" :prop="item.prop" :label="item.label" :width="item.width"
                     :type="item.type" :align="item.align || 'center'">
@@ -47,15 +47,19 @@
                     <template #default="{ row, column, $index }" v-if="!item.type">
                         <slot :name="item.prop" :rows="row" :index="$index">
                             <template v-if="item.prop == 'operator'">
-                                <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
-                                    查看
-                                </el-button>
-                                <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
-                                    编辑
-                                </el-button>
-                                <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
-                                    删除
-                                </el-button>
+                                <div class="operator-buttons" @click.stop>
+                                    <slot name="operator" :rows="row">
+                                        <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
+                                            查看
+                                        </el-button>
+                                        <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
+                                            编辑
+                                        </el-button>
+                                        <el-button type="danger" size="small" :icon="Delete" @click="delFunc(row)">
+                                            删除
+                                        </el-button>
+                                    </slot>
+                                </div>
                             </template>
                             <span v-else-if="item.formatter">
                                 {{ item.formatter(row[item.prop]) }}
@@ -141,6 +145,10 @@ const props = defineProps({
     changePage: {
         type: Function,
         default: () => { }
+    },
+    rowClickFunc: {
+        type: Function,
+        default: () => { }
     }
 })
 
@@ -173,6 +181,15 @@ const handleCurrentChange = (val: number) => {
     props.changePage(val)
 }
 
+// 行点击事件
+const handleRowClick = (row: any, column: any) => {
+    // 如果点击的是操作列，不触发跳转
+    if (column && column.property === 'operator') {
+        return;
+    }
+    props.rowClickFunc(row)
+}
+
 const handleDelete = (row) => {
     ElMessageBox.confirm('确定要删除吗？', '提示', {
         type: 'warning'
@@ -202,6 +219,27 @@ const getIndex = (index: number) => {
     font-size: 18px;
     cursor: pointer;
     color: #676767;
+}
+
+.operator-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.operator-buttons .el-button {
+    margin: 0;
+}
+
+/* 表格行悬停样式 */
+:deep(.el-table tbody tr) {
+    cursor: pointer;
+}
+
+:deep(.el-table tbody tr:hover > td) {
+    background-color: #f5f7fa;
 }
 </style>
 <style>

@@ -10,68 +10,57 @@ export const menuData: Menus[] = [
     {
         id: '0', 
         title: '任务管理',
-        index: '0', 
-        icon: 'Star', 
-        children: [   
-            {
-                id: '01',
-                pid: '0',
-                index: '/system-user',
-                title: '新建任务',
-            },
-            {
-                id: '02',
-                pid: '0',
-                index: '/system-role',
-                title: '打开任务',
-            },
-            {
-                id: '03',
-                pid: '0',
-                index: '/system-menu',
-                title: '任务管理',
-            },
-           
-        ],
+        index: '/system-user', 
+        icon: 'Document', 
+       
     },
     {
-        id: '1',
-        title: '航前检查',
-        index: '1',
-        icon: 'Calendar',
-         children: [
-            {
-                id: '11',
-                pid: '1',
-                index: '/system-user',
-                title: '航前质量监督检查记录',
-            },
-            {
-                id: '12',
-                pid: '1',
-                index: '/preVoyageInspection/personnelQualifications',
-                title: '外业调查人员资质',
-               
-            },
-            {
-                id: '13',
-                pid: '1',
-                index: '/system-menu',
-                title: '外业设备（工作计量器具）',
-            },
-             {
-                id: '14',
-                pid: '1',
-                index: '/system-menu',
-                title: '外业调查项目/仪器比测',
-            },             
-        ],
+        id: '5',
+        title: '专家人才',
+        index: '/expert-talent',
+        icon: 'UserFilled',
+        permiss: '5',
+    },
+    {
+        id: '6',
+        title: '任务单位',
+        index: '/task-unit',
+        icon: 'OfficeBuilding',
+        permiss: '5',
+    },
+    {
+        id: '7',
+        title: '调查人员',
+        index: '/investigation-personnel',
+        icon: 'UserFilled',
+        permiss: '5',
+    },
+    {
+        id: '8',
+        title: '仪器设备管理',
+        index: '/equipment-management',
+        icon: 'Tools',
+        permiss: '5',
+    },
+    {
+        id: '9',
+        title: '任务信息',
+        index: '/task-info',
+        icon: 'Star',
+        permiss: '9',
+    },
+    {
+        id: '0',
+        title: '清除缓存',
+        index: '/clear-cache',
+        icon: 'Delete',
+        permiss: '0',
     },
      {
         id: '2',
         title: '航中检查',
         index: '2',
-        icon: 'ship',
+        icon: 'Ship',
          children: [
             {
                 id: '21',
@@ -181,7 +170,7 @@ export const menuData: Menus[] = [
             {
                 id: '11',
                 pid: '1',
-                index: '/system-user',
+                index: '/user-profile',
                 title: '用户管理',
             },
             {
@@ -323,63 +312,6 @@ export const menuData: Menus[] = [
                 pid: '4',
                 index: '/echarts',
                 title: 'echarts图表',
-            },
-        ],
-    },
-    {
-        id: '5',
-        icon: 'Guide',
-        index: '/icon',
-        title: '图标',
-        permiss: '5',
-    },
-    {
-        id: '7',
-        icon: 'Brush',
-        index: '/theme',
-        title: '主题',
-    },
-    {
-        id: '6',
-        icon: 'DocumentAdd',
-        index: '6',
-        title: '附加页面',
-        children: [
-            {
-                id: '61',
-                pid: '6',
-                index: '/ucenter',
-                title: '个人中心',
-            },
-            {
-                id: '62',
-                pid: '6',
-                index: '/login',
-                title: '登录',
-            },
-            {
-                id: '63',
-                pid: '6',
-                index: '/register',
-                title: '注册',
-            },
-            {
-                id: '64',
-                pid: '6',
-                index: '/reset-pwd',
-                title: '重设密码',
-            },
-            {
-                id: '65',
-                pid: '6',
-                index: '/403',
-                title: '403',
-            },
-            {
-                id: '66',
-                pid: '6',
-                index: '/404',
-                title: '404',
             },
         ],
     },

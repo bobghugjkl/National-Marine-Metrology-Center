@@ -44,9 +44,14 @@ const setTags = (route: any) => {
         return item.path === route.fullPath;
     });
     if (!isExist) {
+        let title = route.meta.title;
+        // 处理动态标题
+        if (typeof title === 'function') {
+            title = title(route);
+        }
         tabs.setTabsItem({
             name: route.name,
-            title: route.meta.title,
+            title: title,
             path: route.fullPath,
         });
     }

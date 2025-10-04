@@ -52,6 +52,7 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { Register } from '@/types/user';
+import { registerUser } from '@/api';
 
 const router = useRouter();
 const param = reactive<Register>({
@@ -68,17 +69,48 @@ const rules: FormRules = {
             trigger: 'blur',
         },
     ],
-    password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+    password: [
+        { 
+            required: true, 
+            message: '请输入密码', 
+            trigger: 'blur' 
+        },
+        {
+            min: 6,
+            message: '密码长度至少6位',
+            trigger: 'blur'
+        }
+    ],
     email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
 };
+
 const register = ref<FormInstance>();
-const submitForm = (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid: boolean) => {
+    formEl.validate(async (valid: boolean) => {
         if (valid) {
-            ElMessage.success('注册成功，请登录');
-            router.push('/login');
+            try {
+                // 调用后端注册接口
+                const res = await registerUser({
+                    username: param.username,
+                    password: param.password,
+                    login_name: param.username,  // 使用用户名作为登录名
+                    department: '未分配'
+                });
+
+                console.log('注册响应:', res);
+
+                if (res && res.code === 200) {
+                    ElMessage.success(res.message || '注册成功，请登录');
+                    router.push('/login');
+                } else {
+                    ElMessage.error(res?.message || '注册失败');
+                }
+            } catch (error: any) {
+                ElMessage.error(error.response?.data?.message || '注册失败，请重试');
+            }
         } else {
+            ElMessage.error('请填写完整信息');
             return false;
         }
     });

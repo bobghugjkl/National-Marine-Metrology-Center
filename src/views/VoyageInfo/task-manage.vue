@@ -1,0 +1,358 @@
+<template>
+    <div>
+        <div class="container">
+            <table-search :query="query" :options="searchOpt" :search="handleSearch"></table-search>
+            <table-custom
+                :columns="columns"
+                :tableData="tableData"
+                :total="page.total"
+                :viewFunc="handleDetail"
+                :delFunc="handleDelete"
+                :editFunc="handleEdit"
+                :rowClickFunc="handleRowClick"
+                :currentPage="page.index"
+                :changePage="changePage"
+            >
+                <template #toolbarBtn>
+                    <el-button type="primary" :icon="CirclePlus" @click="handleAdd">新增</el-button>
+                </template>
+            </table-custom>
+            <el-dialog :title="isEdit ? '编辑任务' : '新增任务'" v-model="visible" width="900px" destroy-on-close
+                :close-on-click-modal="false" @close="closeDialog">
+                <table-edit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData" />
+            </el-dialog>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts" name="task-manage">
+import { ref, reactive, computed } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { CirclePlus } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
+import TableCustom from '@/components/table-custom.vue';
+import TableEdit from '@/components/table-edit.vue';
+import TableSearch from '@/components/table-search.vue';
+import { FormOption, FormOptionList } from '@/types/form-option';
+import { fetchTasksNew, createTaskNew, updateTaskNew, deleteTaskNew } from '@/api/task';
+
+// 任务接口
+interface Task {
+    task_name: string;
+    project?: string;
+    task_code?: string;
+    undertake?: string;
+    participant?: string;
+    ship?: string;
+    leader?: string;
+    chief_scientist?: string;
+    superintendent?: string;
+    superintended?: string;
+    executiontime?: string;
+    subject?: string;
+}
+
+const router = useRouter();
+
+// 查询相关
+const query = reactive({
+    task_name: '',
+});
+const searchOpt = ref<FormOptionList[]>([
+    { 
+        type: 'input', 
+        label: '任务名称：', 
+        prop: 'task_name',
+        placeholder: '请输入任务名称关键词'
+    }
+])
+
+// 搜索按钮
+const handleSearch = () => {
+    page.index = 1;
+    getData();
+};
+
+// 表格相关
+let columns = ref([
+    { type: 'index', label: '序号', width: 80, align: 'center' },
+    { prop: 'task_name', label: '航次任务名称' },
+    { prop: 'project', label: '专项名称' },
+    { prop: 'task_code', label: '航次任务编号', width: 150 },
+    { prop: 'undertake', label: '航次承担单位' },
+    { prop: 'participant', label: '航次参与单位' },
+    { prop: 'ship', label: '调查船', width: 150 },
+    { prop: 'leader', label: '任务负责人', width: 130 },
+    { prop: 'chief_scientist', label: '首席科学家' },
+    { prop: 'superintendent', label: '随船监督员' },
+    { prop: 'operator', label: '操作', width: 220 },
+])
+const page = reactive({
+    index: 1,
+    size: 10,
+    total: 0,
+})
+const tableData = ref<Task[]>([]);
+
+// 获取数据
+const getData = async () => {
+    try {
+        const params: any = {};
+        
+        // 不再需要手动传递 user_id，后端会从 JWT token 中获取
+        console.log('开始获取任务数据...');
+        
+        if (query.task_name) {
+            params.task_name = query.task_name;
+        }
+        
+        // 检查本地存储中的token
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        console.log('当前认证状态:', {
+            hasToken: !!token,
+            hasUserId: !!userId,
+            tokenPrefix: token ? token.substring(0, 20) + '...' : '无'
+        });
+
+        // 调用API
+        console.log('发送API请求:', params);
+        const res = await fetchTasksNew(params);
+        console.log('API响应:', res);
+        
+        if (res && res.code === 200) {
+            console.log('获取任务数据成功:', res.data);
+            tableData.value = res.data.list;
+            page.total = res.data.pageTotal;
+            
+            if (tableData.value.length === 0 && query.task_name) {
+                ElMessage.warning(`未找到任务名称包含"${query.task_name}"的任务`);
+            }
+        } else {
+            console.error('API返回错误:', res);
+            ElMessage.error(res?.message || '获取数据失败');
+        }
+    } catch (error: any) {
+        console.error('获取任务数据失败:', error);
+        if (error.response) {
+            console.error('错误状态:', error.response.status);
+            console.error('错误数据:', error.response.data);
+        }
+        ElMessage.error('获取数据失败');
+    }
+};
+getData();
+
+const changePage = (val: number) => {
+    page.index = val;
+    getData();
+};
+
+// 新增/编辑弹窗相关
+const visible = ref(false);
+const isEdit = ref(false);
+const rowData = ref({});
+
+// 动态表单配置
+const options = computed<FormOption>(() => ({
+    labelWidth: '130px',
+    span: 12,
+    list: [
+        {
+            type: 'input',
+            label: '航次任务名称',
+            prop: 'task_name',
+            required: !isEdit.value,
+            disabled: isEdit.value,
+            placeholder: '请输入航次任务名称'
+        },
+        {
+            type: 'input',
+            label: '专项名称',
+            prop: 'project',
+            placeholder: '请输入专项名称'
+        },
+        {
+            type: 'input',
+            label: '航次任务编号',
+            prop: 'task_code',
+            placeholder: '请输入航次任务编号'
+        },
+        {
+            type: 'input',
+            label: '航次承担单位',
+            prop: 'undertake',
+            placeholder: '请输入承担单位'
+        },
+        {
+            type: 'input',
+            label: '航次参与单位',
+            prop: 'participant',
+            placeholder: '请输入参与单位'
+        },
+        {
+            type: 'input',
+            label: '调查船',
+            prop: 'ship',
+            placeholder: '请输入调查船名称'
+        },
+        {
+            type: 'input',
+            label: '任务负责人',
+            prop: 'leader',
+            placeholder: '请输入负责人'
+        },
+        { 
+            type: 'input', 
+            label: '首席科学家', 
+            prop: 'chief_scientist',
+            placeholder: '请输入首席科学家'
+        },
+        { 
+            type: 'input', 
+            label: '随船监督员', 
+            prop: 'superintendent',
+            placeholder: '请输入随船监督员'
+        },
+        { 
+            type: 'input', 
+            label: '随船监督', 
+            prop: 'superintended',
+            placeholder: '请输入随船监督'
+        },
+        { 
+            type: 'input', 
+            label: '执行时间', 
+            prop: 'executiontime', 
+            span: 24,
+            placeholder: '例如：2025-01-15 至 2025-02-20'
+        },
+        { 
+            type: 'input', 
+            label: '任务学科', 
+            prop: 'subject',
+            placeholder: '请输入任务学科'
+        },
+    ]
+}))
+
+const handleAdd = () => {
+    isEdit.value = false;
+    rowData.value = {};
+    visible.value = true;
+}
+
+const handleEdit = (row: Task) => {
+    isEdit.value = true;
+    rowData.value = { ...row };
+    visible.value = true;
+}
+
+const handleDetail = (row: Task) => {
+    ElMessage.info('查看详情功能待实现');
+}
+
+const handleRowClick = (row: Task) => {
+    router.push(`/task-detail/${row.task_name}`);
+}
+
+const closeDialog = () => {
+    visible.value = false;
+}
+
+const updateData = async (formData: any) => {
+    try {
+        console.log('提交数据:', formData);
+        console.log('是否编辑模式:', isEdit.value);
+        
+        // 不再需要手动传递 user_id，后端会从 JWT token 中获取
+        
+        if (isEdit.value) {
+            const res = await updateTaskNew(formData.task_name, formData);
+            console.log('更新响应:', res);
+            ElMessage.success('更新成功');
+        } else {
+            const res = await createTaskNew(formData);
+            console.log('创建响应:', res);
+            ElMessage.success('创建成功');
+        }
+        closeDialog();
+        getData();
+    } catch (error: any) {
+        console.error('操作失败:', error);
+        console.error('错误详情:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.response?.data?.message
+        });
+        
+        // 显示详细的错误信息
+        const errorMsg = error.response?.data?.message || error.message || '操作失败';
+        ElMessage.error(errorMsg);
+    }
+};
+
+const handleDelete = async (row: Task) => {
+    try {
+        await ElMessageBox.confirm('确定要删除该任务吗？', '提示', { type: 'warning' });
+        await deleteTaskNew(row.task_name);
+        ElMessage.success('删除成功');
+        getData();
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            ElMessage.error(error.response?.data?.message || '删除失败');
+        }
+    }
+}
+</script>
+
+<style scoped>
+.container {
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+/* 表格样式优化 */
+:deep(.el-table) {
+    margin-top: 20px;
+}
+
+:deep(.el-table th) {
+    background-color: #f5f7fa !important;
+    color: #606266;
+    font-weight: 600;
+    text-align: center;
+}
+
+:deep(.el-table td) {
+    text-align: center;
+    padding: 16px 0;
+}
+
+:deep(.el-table .cell) {
+    padding: 0 12px;
+    line-height: 1.8;
+}
+
+/* 按钮样式 */
+:deep(.el-button) {
+    margin: 0 4px;
+}
+
+/* 搜索框样式 */
+:deep(.table-search) {
+    margin-bottom: 25px;
+}
+
+:deep(.el-form-item) {
+    margin-bottom: 18px;
+}
+
+/* 分页器样式 */
+:deep(.el-pagination) {
+    margin-top: 25px;
+    justify-content: center;
+}
+</style>

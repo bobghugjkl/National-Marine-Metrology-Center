@@ -34,7 +34,7 @@ const tabs = useTabsStore();
 }
 .content-box {
     position: absolute;
-    left: 250px;
+    left: 180px;
     right: 0;
     top: 70px;
     bottom: 0;
