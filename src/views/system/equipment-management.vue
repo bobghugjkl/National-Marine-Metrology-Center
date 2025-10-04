@@ -141,6 +141,7 @@ import { ref, reactive, onMounted, onActivated } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Download } from '@element-plus/icons-vue';
 import { fetchEquipmentManagementList, exportEquipmentManagement } from '@/api/equipment-management';
+import * as XLSX from 'xlsx';
 
 // 筛选表单
 const filterForm = reactive({
@@ -224,16 +225,49 @@ const handleCurrentChange = (page: number) => {
     loadData();
 };
 
-// 导出Excel
+// 导出Excel（导出当前筛选条件下的全部数据，不受分页限制）
 const handleExport = async () => {
     try {
-        const res = await exportEquipmentManagement();
-        if (res.code === 200) {
-            // 这里可以实现Excel导出逻辑
-            ElMessage.success('导出功能待实现');
-        } else {
+        const params = {
+            page: 1,
+            page_size: 100000,
+            task_name: filterForm.task_name,
+            instrument_type: filterForm.instrument_type,
+            instrument_name: filterForm.instrument_name,
+            traceability: filterForm.traceability,
+            calibration_institution: filterForm.calibration_institution
+        };
+
+        const res = await fetchEquipmentManagementList(params);
+        if (res.code !== 200) {
             ElMessage.error(res.message || '导出失败');
+            return;
         }
+
+        const rows = (res.data.list || []).map((row: any) => ({
+            '航次名称': row.task_name ?? '',
+            '类别': row.category ?? '',
+            '仪器(标准物质)名称': row.instrument_name ?? '',
+            '编号': row.instrument_number ?? '',
+            '型号': row.model ?? '',
+            '量值溯源方式': row.traceability_method ?? '',
+            '检定/校准日期': row.calibration_date ?? '',
+            '证书编号': row.certificate_number ?? '',
+            '有效期': row.validity_period ?? '',
+            '检定/校准机构': row.calibration_institution ?? '',
+            '备注': row.remarks ?? '',
+            '数据来源': row.source_type ?? ''
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, '仪器设备管理');
+
+        const ts = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const fileName = `仪器设备管理_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        ElMessage.success('导出成功');
     } catch (error: any) {
         console.error('导出失败:', error);
         ElMessage.error('导出失败: ' + (error.message || '未知错误'));

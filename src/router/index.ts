@@ -42,6 +42,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "task-manage" */ '../views/VoyageInfo/task-manage.vue'),
             },
             {
+                path: '/user-profile',
+                name: 'user-profile',
+                meta: {
+                    title: '个人信息管理',
+                    permiss: '0',
+                },
+                component: () => import(/* webpackChunkName: "user-profile" */ '../views/system/user-profile.vue'),
+            },
+            {
                 path: '/task-detail/:task_name',
                 name: 'task-detail',
                 meta: {

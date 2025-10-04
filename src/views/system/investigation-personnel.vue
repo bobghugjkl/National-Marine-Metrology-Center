@@ -167,6 +167,7 @@ import { ref, reactive, onMounted, onActivated } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Download } from '@element-plus/icons-vue';
 import { fetchInvestigationPersonnelList, exportInvestigationPersonnel } from '@/api/investigation-personnel';
+import * as XLSX from 'xlsx';
 
 // 筛选表单
 const filterForm = reactive({
@@ -260,16 +261,52 @@ const handleCurrentChange = (page: number) => {
     loadData();
 };
 
-// 导出Excel
+// 导出Excel（导出当前筛选条件下的全部数据，不受分页限制）
 const handleExport = async () => {
     try {
-        const res = await exportInvestigationPersonnel();
-        if (res.code === 200) {
-            // 这里可以实现Excel导出逻辑
-            ElMessage.success('导出功能待实现');
-        } else {
+        const params = {
+            page: 1,
+            page_size: 100000,
+            name: filterForm.name,
+            sex: filterForm.sex,
+            professional_title: filterForm.professional_title,
+            employer: filterForm.employer,
+            specialty: filterForm.specialty,
+            instruments: filterForm.instruments,
+            task_name: filterForm.task_name,
+            birthdate_start: filterForm.birthdate_range?.[0] || '',
+            birthdate_end: filterForm.birthdate_range?.[1] || ''
+        };
+
+        const res = await fetchInvestigationPersonnelList(params);
+        if (res.code !== 200) {
             ElMessage.error(res.message || '导出失败');
+            return;
         }
+
+        const rows = (res.data.list || []).map((row: any) => ({
+            '航次名称': row.task_name ?? '',
+            '姓名': row.name ?? '',
+            '性别': row.sex ?? '',
+            '出生年月': row.birthdate ?? '',
+            '职称': row.professional_title ?? '',
+            '工作单位': row.employer ?? '',
+            '从事专业': row.specialty ?? '',
+            '操作仪器': row.instruments ?? '',
+            '培训情况': row.training ?? '',
+            '备注': row.remarks ?? '',
+            '数据来源': row.source_type ?? ''
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, '调查人员');
+
+        const ts = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const fileName = `调查人员_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        ElMessage.success('导出成功');
     } catch (error: any) {
         console.error('导出失败:', error);
         ElMessage.error('导出失败: ' + (error.message || '未知错误'));
