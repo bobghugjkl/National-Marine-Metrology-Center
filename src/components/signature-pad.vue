@@ -131,10 +131,30 @@ const saveSignature = () => {
     emit('save', dataURL);
 };
 
+// 加载图片到画布
+const loadImageToCanvas = (imageData: string) => {
+    if (!ctx || !signatureCanvas.value || !imageData) return;
+    
+    const img = new Image();
+    img.onload = () => {
+        // 清除画布
+        ctx!.clearRect(0, 0, signatureCanvas.value!.width, signatureCanvas.value!.height);
+        
+        // 绘制图片到画布
+        ctx!.drawImage(img, 0, 0, signatureCanvas.value!.width, signatureCanvas.value!.height);
+        
+        // 更新状态
+        signatureData.value = imageData;
+        hasSignature.value = true;
+    };
+    img.src = imageData;
+};
+
 // 暴露方法给父组件
 defineExpose({
     clearSignature,
     saveSignature,
+    loadImageToCanvas,
     getSignatureData: () => signatureData.value
 });
 </script>

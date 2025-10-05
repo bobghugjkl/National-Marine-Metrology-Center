@@ -91,7 +91,7 @@ const handleCommand = (command: string) => {
         localStorage.removeItem('vuems_name');
         router.push('/login');
     } else if (command == 'user') {
-        router.push('/ucenter');
+        router.push('/user-profile');
     }
 };
 

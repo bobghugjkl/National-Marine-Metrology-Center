@@ -911,6 +911,13 @@ onMounted(() => {
     max-width: 100%;
 }
 
+/* 当窗口足够大时，移除容器的水平滚动 */
+@media (min-width: 1300px) {
+    .personnel-qualifications {
+        overflow-x: visible;
+    }
+}
+
 .toolbar {
     display: flex;
     justify-content: space-between;
@@ -928,9 +935,17 @@ onMounted(() => {
 }
 
 .personnel-table {
-    width: 70%;
+    width: 100%;
     /* 设置最小宽度，确保表格有足够空间 */
     min-width: 1200px;
+}
+
+/* 当窗口足够大时，移除最小宽度限制，让表格自适应 */
+@media (min-width: 1300px) {
+    .personnel-table {
+        width: 100%;
+        min-width: unset;
+    }
 }
 
 .task-name {

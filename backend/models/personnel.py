@@ -6,10 +6,16 @@ import json
 from config.database import db
 
 class PersonnelQualification(db.Model):
-    """外业调查人员资质表模型"""
+    """
+    外业调查人员资质表模型
+    这个模型定义了人员资质表的结构，为前端表格提供数据源
+    """
     __tablename__ = 'tb_personnel_qualifications'
     
+    # 主键
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    
+    # 基本信息字段（对应前端表格的列）
     task_name = db.Column(db.String(255), nullable=False, comment='航次任务名称')
     name = db.Column(db.String(100), nullable=False, comment='姓名')
     sex = db.Column(db.String(10), nullable=False, comment='性别')
@@ -21,12 +27,21 @@ class PersonnelQualification(db.Model):
     training = db.Column(db.Text, comment='培训情况')
     remarks = db.Column(db.Text, comment='备注')
     attachments = db.Column(db.Text, comment='附件信息（JSON字符串）')
+    
+    # 用户隔离字段（确保数据安全）
     user_id = db.Column(db.Integer, comment='创建用户ID（用户隔离）')
+    
+    # 时间戳字段
     create_time = db.Column(db.DateTime, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
     def to_dict(self):
-        """转换为字典"""
+        """
+        转换为字典
+        这个方法将数据库记录转换为前端表格需要的数据格式
+        注意：字段名映射是为了适配前端表格的列配置
+        """
+        # 处理附件信息（JSON字符串转换为列表）
         attachment_list = []
         if self.attachments:
             try:
@@ -38,14 +53,14 @@ class PersonnelQualification(db.Model):
             'id': self.id,
             'task_name': self.task_name,
             'name': self.name,
-            'gender': self.sex,  # 前端使用gender字段
+            'gender': self.sex,  # 前端表格使用gender字段显示性别
             'birth_date': self.birthdate.strftime('%Y-%m') if self.birthdate else '',
-            'title': self.professional_title,  # 前端使用title字段
-            'work_unit': self.employer,  # 前端使用work_unit字段
-            'major': self.specialty,  # 前端使用major字段
+            'title': self.professional_title,  # 前端表格使用title字段显示职称
+            'work_unit': self.employer,  # 前端表格使用work_unit字段显示工作单位
+            'major': self.specialty,  # 前端表格使用major字段显示从事专业
             'instruments': self.instruments,
             'training': self.training,
-            'remark': self.remarks,  # 前端使用remark字段
+            'remark': self.remarks,  # 前端表格使用remark字段显示备注
             'attachmentList': attachment_list,
             'user_id': self.user_id,
             'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S') if self.create_time else '',

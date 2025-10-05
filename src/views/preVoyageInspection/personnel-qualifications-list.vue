@@ -19,9 +19,10 @@
 		<!-- 搜索区域 -->
 		<TableSearch :query="query" :options="searchOpt" :search="handleSearch" />
 
-		<!-- 表格区域 -->
-		<div class="container">
-			<TableCustom
+		<!-- 表格区域：使用 TableCustom 组件实现固定列和水平滚动 -->
+		<div class="container personnel-table">
+			<!-- TableCustom 组件：通用表格组件，负责渲染表格和处理固定列/滚动 -->
+			<table-custom
 				:columns="columns"
 				:tableData="tableData"
 				:total="page.total"
@@ -69,7 +70,7 @@
 					<el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
 					<el-button type="info" size="small" @click="handleView(rows)">查看</el-button>
 				</template>
-			</TableCustom>
+			</table-custom>
 		</div>
 
 		<!-- 新增/编辑弹窗 -->
@@ -259,6 +260,7 @@ import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import { TableItem } from '@/types/table';
 import { FormOption, FormOptionList } from '@/types/form-option';
+import TableCustom from '@/components/table-custom.vue';
 
 // 查询相关
 const query = reactive({
@@ -277,10 +279,12 @@ const handleSearch = () => {
 	changePage(1);
 };
 
-// 表格相关
+// 表格列配置：定义人员资质表格的列结构和固定列设置
 const columns = ref([
-	{ type: 'selection' },
-	{ type: 'index', label: '序号', width: 55, align: 'center' },
+	{ type: 'selection' }, // 多选框列
+	// '序号' 列：通过设置 fixed: 'left' 将其固定在表格左侧（在 TableCustom 组件中自动处理）
+	{ type: 'index', label: '序号', width: 55, align: 'center',fixed: 'left' },
+	// 内容列：使用 minWidth 确保列在内容较多时有最小宽度，允许自适应
 	{
 		prop: 'task_name',
 		label: '航次任务名称',
@@ -295,7 +299,7 @@ const columns = ref([
 		prop: 'sex',
 		label: '性别',
 		minWidth: 60,
-		slot: 'sex'
+		slot: 'sex' // 使用自定义插槽显示性别标签
 	},
 	{
 		prop: 'birthdate',
@@ -336,13 +340,15 @@ const columns = ref([
 		prop: 'attachment',
 		label: '附件',
 		minWidth: 100,
-		slot: 'attachment'
+		slot: 'attachment' // 使用自定义插槽显示附件链接
 	},
+	// '操作' 列：通过设置 fixed: 'right' 将其固定在表格右侧（在 TableCustom 组件中自动处理）
 	{
 		prop: 'operator',
 		label: '操作',
 		width: 200,
-		slot: 'operator'
+		slot: 'operator', // 使用自定义插槽显示操作按钮
+		fixed: 'right'
 	}
 ]);
 
@@ -659,6 +665,87 @@ getData();
 </script>
 
 <style scoped>
+/* 表格容器样式：确保表格能够正确显示固定列和水平滚动 */
+.container {
+	overflow-x: auto !important; /* 启用水平滚动，使用 !important 提高优先级 */
+	width: 100%;
+	max-width: 100%; /* 确保容器不超出父元素 */
+	/* 强制设置最小宽度，确保表格有足够空间 */
+	min-width: 1400px !important;
+}
+
+/* 响应式设计：当屏幕足够宽时，移除滚动条 */
+@media (min-width: 1600px) {
+	.container {
+		overflow-x: visible !important; /* 宽屏时移除水平滚动条，使用 !important 提高优先级 */
+		min-width: unset !important; /* 宽屏时移除最小宽度限制 */
+	}
+}
+
+/* 深度选择器：直接修改 table-custom 组件内部的样式 */
+:deep(.table-container) {
+	overflow-x: auto !important; /* 强制启用水平滚动 */
+	min-width: 1400px !important; /* 确保表格有最小宽度，与容器保持一致 */
+}
+
+/* 确保固定列正确显示 */
+:deep(.el-table__fixed-right) {
+	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1) !important; /* 右侧固定列阴影 */
+}
+
+:deep(.el-table__fixed-left) {
+	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1) !important; /* 左侧固定列阴影 */
+}
+
+@media (min-width: 1500px) {
+	:deep(.table-container) {
+		overflow-x: visible !important; /* 宽屏时移除滚动条 */
+		min-width: unset; /* 宽屏时移除最小宽度限制 */
+	}
+}
+
+/* 确保表格本身有足够的宽度 */
+:deep(.el-table) {
+	min-width: 1400px !important; /* 表格最小宽度，与容器保持一致 */
+}
+
+@media (min-width: 1600px) {
+	:deep(.el-table) {
+		min-width: unset !important; /* 宽屏时移除最小宽度限制 */
+	}
+}
+
+/* 人员资质表格专用样式：确保表格宽度100% */
+.personnel-table {
+	width: 100% !important; /* 确保表格占满容器宽度 */
+}
+
+/* 深度选择器：直接修改人员资质表格的样式 */
+:deep(.personnel-table) {
+	width: 100% !important; /* 强制设置表格宽度为100% */
+	min-width: 1200px !important; /* 确保表格有最小宽度 */
+}
+
+/* 确保表格能够正确显示固定列 */
+:deep(.el-table) {
+	table-layout: fixed !important; /* 使用固定表格布局 */
+}
+
+/* 强制固定列显示 */
+:deep(.el-table__fixed-right-patch) {
+	background-color: #fff !important;
+}
+
+:deep(.el-table__fixed-left-patch) {
+	background-color: #fff !important;
+}
+
+@media (min-width: 1600px) {
+	:deep(.personnel-table) {
+		min-width: unset !important; /* 宽屏时移除最小宽度限制 */
+	}
+}
+
 .page-header {
 	display: flex;
 	justify-content: space-between;
