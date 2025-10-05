@@ -455,6 +455,28 @@ const loadData = async () => {
                 ...item,
                 isEditing: false
             }));
+            
+            // 正确处理分页总数
+            if (response.total !== undefined && response.total !== null) {
+                page.total = response.total;
+            } else if (response.pageTotal !== undefined && response.pageTotal !== null) {
+                page.total = response.pageTotal;
+            } else if (response.count !== undefined && response.count !== null) {
+                page.total = response.count;
+            } else {
+                // 如果后端没有返回总数，但有数据，则使用当前页数据长度
+                page.total = tableData.value.length;
+            }
+            
+            console.log('分页信息:', {
+                total: page.total,
+                currentPage: page.current,
+                pageSize: page.size,
+                dataLength: tableData.value.length,
+                apiTotal: response.total,
+                apiPageTotal: response.pageTotal,
+                apiCount: response.count
+            });
         } else {
             console.error('API返回错误:', response);
             ElMessage.error(response?.msg || '加载数据失败');
@@ -1046,5 +1068,13 @@ onMounted(() => {
 
 .dialog-upload .el-button {
     margin: 0;
+}
+
+/* 分页器居中显示 */
+.pagination-wrapper {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 </style>

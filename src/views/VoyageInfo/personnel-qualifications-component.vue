@@ -937,7 +937,7 @@ onMounted(() => {
 .personnel-table {
     width: 100%;
     /* 设置最小宽度，确保表格有足够空间 */
-    min-width: 1200px;
+    min-width: 1400px;
 }
 
 /* 当窗口足够大时，移除最小宽度限制，让表格自适应 */
