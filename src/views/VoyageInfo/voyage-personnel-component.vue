@@ -153,14 +153,16 @@
             </el-table-column>
             <el-table-column label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
-                    <template v-if="row.isEditing">
-                        <el-button size="small" type="success" :icon="Check" @click.stop="handleSaveRow(row)">保存</el-button>
-                        <el-button size="small" type="warning" :icon="Close" @click.stop="handleCancelEdit(row)">取消</el-button>
-                    </template>
-                    <template v-else>
-                        <el-button size="small" type="primary" :icon="Edit" @click.stop="handleEditRow(row)">编辑</el-button>
-                        <el-button size="small" type="danger" :icon="Delete" @click.stop="handleDeleteRow(row)">删除</el-button>
-                    </template>
+                    <div class="operation-buttons">
+                        <template v-if="row.isEditing">
+                            <el-button size="small" type="success" :icon="Check" @click.stop="handleSaveRow(row)">保存</el-button>
+                            <el-button size="small" type="warning" :icon="Close" @click.stop="handleCancelEdit(row)">取消</el-button>
+                        </template>
+                        <template v-else>
+                            <el-button size="small" type="primary" :icon="Edit" @click.stop="handleEditRow(row)">编辑</el-button>
+                            <el-button size="small" type="danger" :icon="Delete" @click.stop="handleDeleteRow(row)">删除</el-button>
+                        </template>
+                    </div>
                 </template>
             </el-table-column>
         </el-table>
@@ -785,9 +787,17 @@ onMounted(() => {
 }
 
 .voyage-personnel-table {
-    width: 70%;
+    width: 100%;
     /* 设置最小宽度，确保表格有足够空间 */
     min-width: 1200px;
+}
+
+/* 当窗口足够大时，移除最小宽度限制，让表格自适应 */
+@media (min-width: 1300px) {
+    .voyage-personnel-table {
+        width: 100%;
+        min-width: unset;
+    }
 }
 
 .task-name {
@@ -841,8 +851,10 @@ onMounted(() => {
 
 .attachment-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* 改为横向排列 */
     gap: 5px;
+    justify-content: center;
+    align-items: center;
 }
 
 .no-attachment {
@@ -859,12 +871,14 @@ onMounted(() => {
     overflow-y: auto;
 }
 
-/* 操作按钮美化 */
+/* 操作按钮美化 - 横向排列 */
 .operation-buttons {
     display: flex;
+    flex-direction: row; /* 确保横向排列 */
     gap: 8px;
     justify-content: center;
     align-items: center;
+    flex-wrap: nowrap; /* 防止换行 */
 }
 
 .operation-buttons .el-button {

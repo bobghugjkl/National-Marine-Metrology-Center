@@ -15,20 +15,23 @@ personnel_bp = Blueprint('personnel', __name__, url_prefix='/api')
 @personnel_bp.route('/personnel-qualifications', methods=['GET'])
 @token_required
 def get_personnel_qualifications(current_user):
-    """获取外业调查人员资质列表（用户隔离 - JWT认证）"""
+    """
+    获取外业调查人员资质列表（用户隔离 - JWT认证）
+    这个接口为前端表格提供数据，支持搜索和分页
+    """
     try:
         # 从 JWT token 中获取用户ID（安全，无法伪造）
         user_id = current_user['user_id']
         user_role = current_user['role']
         
-        # 获取查询参数
+        # 获取查询参数（前端表格的搜索条件）
         task_name = request.args.get('task_name')
         name = request.args.get('name')
         
         # 构建查询
         query = PersonnelQualification.query
         
-        # 非管理员只能查看自己创建的记录
+        # 非管理员只能查看自己创建的记录（用户隔离）
         if user_role != 'admin':
             query = query.filter(PersonnelQualification.user_id == user_id)
             
@@ -43,14 +46,14 @@ def get_personnel_qualifications(current_user):
                 'data': []
             })
             
-        # 按人员姓名筛选
+        # 按人员姓名筛选（支持模糊搜索）
         if name:
             query = query.filter(PersonnelQualification.name.like(f'%{name}%'))
             
         # 执行查询
         personnel_list = query.all()
         
-        # 转换为字典列表
+        # 转换为字典列表（前端表格需要的数据格式）
         result = [personnel.to_dict() for personnel in personnel_list]
         
         return jsonify({

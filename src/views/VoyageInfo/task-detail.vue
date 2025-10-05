@@ -264,7 +264,7 @@ const handleMenuSelect = (index: string) => {
 
 // 返回任务列表
 const goBack = () => {
-    router.push('/system-user');
+    router.push({ name: 'task-manage' });
 };
 
 // 处理检查记录保存成功
@@ -349,6 +349,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     background-color: #fff;
+    width: calc(100% - 260px);
 }
 
 .content-header {

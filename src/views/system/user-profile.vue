@@ -82,6 +82,7 @@
             
             <SignaturePad 
                 ref="signaturePadRef"
+                :initialSignature="userInfo.signature"
                 @save="handleSignatureSave"
             />
         </el-card>
@@ -139,7 +140,7 @@
 </template>
 
 <script setup lang="ts" name="user-profile">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick } from 'vue';
 import { ElMessage, FormInstance } from 'element-plus';
 import { getCurrentUserProfile, updateCurrentUserProfile, changePassword } from '@/api/user-profile';
 import SignaturePad from '@/components/signature-pad.vue';
@@ -225,6 +226,15 @@ const getCurrentUserInfo = async () => {
                 phone: res.data.phone || '',
                 signature: res.data.signature || ''
             });
+            
+            // 如果有签名数据，加载到签名板
+            if (userInfo.signature) {
+                nextTick(() => {
+                    if (signaturePadRef.value) {
+                        signaturePadRef.value.loadImageToCanvas(userInfo.signature);
+                    }
+                });
+            }
         }
     } catch (error: any) {
         ElMessage.error('获取用户信息失败');

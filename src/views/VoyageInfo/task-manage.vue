@@ -73,19 +73,22 @@ const handleSearch = () => {
     getData();
 };
 
-// 表格相关
+// 表格列配置：定义表格的列结构和固定列设置
 let columns = ref([
-    { type: 'index', label: '序号', width: 80, align: 'center' },
-    { prop: 'task_name', label: '航次任务名称' },
-    { prop: 'project', label: '专项名称' },
+    // '序号' 列：通过设置 fixed: 'left' 将其固定在表格左侧
+    { type: 'index', label: '序号', width: 80, align: 'center', fixed: 'left' },
+    // 内容列：使用 minWidth 确保列在内容较多时有最小宽度，允许自适应
+    { prop: 'task_name', label: '航次任务名称', minWidth: 180 },
+    { prop: 'project', label: '专项名称', minWidth: 150 },
     { prop: 'task_code', label: '航次任务编号', width: 150 },
-    { prop: 'undertake', label: '航次承担单位' },
-    { prop: 'participant', label: '航次参与单位' },
+    { prop: 'undertake', label: '航次承担单位', minWidth: 180 },
+    { prop: 'participant', label: '航次参与单位', minWidth: 180 },
     { prop: 'ship', label: '调查船', width: 150 },
     { prop: 'leader', label: '任务负责人', width: 130 },
-    { prop: 'chief_scientist', label: '首席科学家' },
-    { prop: 'superintendent', label: '随船监督员' },
-    { prop: 'operator', label: '操作', width: 220 },
+    { prop: 'chief_scientist', label: '首席科学家', minWidth: 150 },
+    { prop: 'superintendent', label: '随船监督员', minWidth: 150 },
+    // '操作' 列：通过设置 fixed: 'right' 将其固定在表格右侧
+    { prop: 'operator', label: '操作', width: 220, fixed: 'right' },
 ])
 const page = reactive({
     index: 1,
