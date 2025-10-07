@@ -2,7 +2,8 @@
     <div class="login-bg">
         <div class="login-container">
             <div class="login-header">
-                <img class="logo mr10" src="../../assets/img/logo.svg" alt="" />
+                <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                <el-icon class="icon-login"><User />  </el-icon>
                 <div class="login-title">系统登录</div>
             </div>
             <el-form :model="param" :rules="rules" ref="login" size="large">
@@ -51,6 +52,9 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { loginUser } from '@/api';
+import { User } from '@element-plus/icons-vue';
+
+import { User } from '@element-plus/icons-vue';
 
 interface LoginInfo {
     username: string;
@@ -148,6 +152,13 @@ tabs.clearTabs();
     width: 100%;
     height: 100vh;
     background: url(../../assets/img/login-bg.jpg) center/cover no-repeat;
+}
+
+.icon-login {
+  /* 添加一些样式来美化图标 */
+  font-size: 24px;
+  color: #409EFF; /* Element主题蓝色 */
+  margin-right: 10px;
 }
 
 .login-header {

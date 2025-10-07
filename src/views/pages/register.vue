@@ -2,8 +2,10 @@
     <div class="login-bg">
         <div class="login-container">
             <div class="login-header">
-                <img class="logo mr10" src="../../assets/img/logo.svg" alt="" />
-                <div class="login-title">后台管理系统</div>
+               <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                 <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                <el-icon class="icon-login"><User />  </el-icon>
+                <div class="login-title">用户注册</div>
             </div>
             <el-form :model="param" :rules="rules" ref="register" size="large">
                 <el-form-item prop="username">
@@ -142,6 +144,13 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     font-size: 22px;
     color: #333;
     font-weight: bold;
+}
+
+.icon-login {
+  /* 添加一些样式来美化图标 */
+  font-size: 24px;
+  color: #409EFF; /* Element主题蓝色 */
+  margin-right: 10px;
 }
 
 .login-container {

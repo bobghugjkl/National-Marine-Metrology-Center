@@ -25,6 +25,8 @@ def get_equipment_list(current_user):
         task_name = request.args.get('task_name')
         name = request.args.get('name')
 
+        
+
         # 构建查询
         query = Equipment.query
 
@@ -52,6 +54,8 @@ def get_equipment_list(current_user):
 
         # 转换为字典列表
         result = [equipment.to_dict() for equipment in equipment_list]
+
+       
 
         return jsonify({
             'code': 200,

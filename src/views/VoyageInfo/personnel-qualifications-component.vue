@@ -33,8 +33,8 @@
             @row-click="handleRowClick"
         >
             <el-table-column type="selection" width="55"></el-table-column>
-            <el-table-column type="index" label="序号" width="80" align="center"></el-table-column>
-            <el-table-column prop="task_name" label="航次任务名称" min-width="180">
+            <el-table-column type="index" label="序号"  align="center"></el-table-column>
+            <el-table-column prop="task_name" label="航次任务名称" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.task_name" size="small" @click.stop></el-input>
@@ -42,7 +42,7 @@
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="name" label="姓名" width="100" align="center">
+            <el-table-column prop="name" label="姓名"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.name" size="small" @click.stop></el-input>
@@ -50,7 +50,7 @@
                     <span v-else>{{ row.name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="gender" label="性别" width="80" align="center">
+            <el-table-column prop="gender" label="性别" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-select v-model="row.gender" size="small" @click.stop>
@@ -61,7 +61,7 @@
                     <span v-else>{{ row.gender }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="birth_date" label="出生年月" width="120" align="center">
+            <el-table-column prop="birth_date" label="出生年月"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-date-picker
@@ -76,7 +76,7 @@
                     <span v-else>{{ row.birth_date }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="title" label="职称" width="120" align="center">
+            <el-table-column prop="title" label="职称"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.title" size="small" @click.stop></el-input>
@@ -84,7 +84,7 @@
                     <span v-else>{{ row.title }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="work_unit" label="工作单位" min-width="200">
+            <el-table-column prop="work_unit" label="工作单位" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.work_unit" size="small" @click.stop></el-input>
@@ -92,7 +92,7 @@
                     <span v-else>{{ row.work_unit }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="major" label="从事专业" width="150" align="center">
+            <el-table-column prop="major" label="从事专业"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.major" size="small" @click.stop></el-input>
@@ -100,7 +100,7 @@
                     <span v-else>{{ row.major }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="instruments" label="本航次操作仪器" min-width="200">
+            <el-table-column prop="instruments" label="本航次操作仪器" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.instruments" size="small" @click.stop></el-input>
@@ -108,7 +108,7 @@
                     <span v-else>{{ row.instruments }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="training" label="培训情况" width="150" align="center">
+            <el-table-column prop="training" label="培训情况"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.training" size="small" @click.stop></el-input>
@@ -116,7 +116,7 @@
                     <span v-else>{{ row.training }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="remark" label="备注" width="150" align="center">
+            <el-table-column prop="remark" label="备注"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-input v-model="row.remark" size="small" @click.stop></el-input>
@@ -124,7 +124,7 @@
                     <span v-else>{{ row.remark }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="attachment" label="附件" width="180" align="center">
+            <el-table-column prop="attachment" label="附件"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
                         <el-upload

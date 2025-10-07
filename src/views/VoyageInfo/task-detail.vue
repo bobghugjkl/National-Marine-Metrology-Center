@@ -349,7 +349,8 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     background-color: #fff;
-    width: calc(100% - 260px);
+    
+    min-width: 0;
 }
 
 .content-header {
@@ -469,7 +470,7 @@ onMounted(() => {
     .sidebar {
         width: 100%;
         height: auto;
-        order: 2;
+        order: 1;
     }
 
     .main-content {
