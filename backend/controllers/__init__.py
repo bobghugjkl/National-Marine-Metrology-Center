@@ -23,5 +23,6 @@ from .expert_talent_controller import expert_talent_bp
 from .task_unit_controller import task_unit_bp
 from .investigation_personnel_controller import investigation_personnel_bp
 from .equipment_management_controller import equipment_management_bp
+from .export_controller import export_bp
 
-__all__ = ['user_bp', 'task_bp', 'inspection_bp', 'auth_bp', 'personnel_bp', 'equipment_bp', 'investigation_bp', 'voyage_personnel_bp', 'voyage_equipment_bp', 'voyage_investigation_bp', 'supervisor_log_bp', 'original_records_bp', 'procedure_execution_bp', 'work_log_bp', 'sample_storage_bp', 'post_inspection_bp', 'pre_summary_bp', 'onboard_inspection_bp', 'expert_talent_bp', 'task_unit_bp', 'investigation_personnel_bp', 'equipment_management_bp']
+__all__ = ['user_bp', 'task_bp', 'inspection_bp', 'auth_bp', 'personnel_bp', 'equipment_bp', 'investigation_bp', 'voyage_personnel_bp', 'voyage_equipment_bp', 'voyage_investigation_bp', 'supervisor_log_bp', 'original_records_bp', 'procedure_execution_bp', 'work_log_bp', 'sample_storage_bp', 'post_inspection_bp', 'pre_summary_bp', 'onboard_inspection_bp', 'expert_talent_bp', 'task_unit_bp', 'investigation_personnel_bp', 'equipment_management_bp', 'export_bp']

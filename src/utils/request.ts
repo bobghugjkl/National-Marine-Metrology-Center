@@ -37,9 +37,14 @@ service.interceptors.response.use(
     (response: AxiosResponse) => {
         console.log('收到响应:', response.config.url, {
             status: response.status,
-            data: response.data
+            data: response.data,
+            responseType: response.config.responseType
         });
         if (response.status === 200) {
+            // 如果是blob类型，直接返回blob数据
+            if (response.config.responseType === 'blob') {
+                return response.data;
+            }
             // 返回响应数据，前端组件需要访问response.data
             return response.data;
         } else {

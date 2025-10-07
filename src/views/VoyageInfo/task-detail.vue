@@ -171,8 +171,41 @@
 
                 <div v-else-if="activeMenu === 'export-data'" class="content-section">
                     <h2>导出数据包</h2>
-                    <p>这是数据导出功能的内容区域，目前为空。</p>
-                    <el-empty description="暂无导出功能" />
+                    <p>点击下方按钮导出当前任务的所有表单数据包，包含Excel表格和Word文档。</p>
+                    
+                    <div class="export-content">
+                        <el-card class="export-card">
+                            <template #header>
+                                <div class="card-header">
+                                    <el-icon><Download /></el-icon>
+                                    <span>数据包导出</span>
+                                </div>
+                            </template>
+                            
+                            <div class="export-info">
+                                <p><strong>任务名称：</strong>{{ taskName }}</p>
+                                <p><strong>导出内容：</strong></p>
+                                <ul class="export-list">
+                                    <li>航前检查表单（人员资质、设备、项目统计）</li>
+                                    <li>航中检查表单（人员资质、设备、项目统计、监督员日志、原始记录、操作规程、工作日志、样品储存、随船检查）</li>
+                                    <li>航后检查表单</li>
+                                </ul>
+                                <p><strong>文件格式：</strong>Excel表格 + Word文档，打包为ZIP压缩包</p>
+                            </div>
+                            
+                            <div class="export-actions">
+                                <el-button 
+                                    type="primary" 
+                                    size="large"
+                                    :loading="exportLoading"
+                                    @click="handleExportDataPackage"
+                                    :icon="Download"
+                                >
+                                    {{ exportLoading ? '正在生成数据包...' : '导出数据包' }}
+                                </el-button>
+                            </div>
+                        </el-card>
+                    </div>
                 </div>
 
                 <div v-else-if="activeMenu === 'import-data'" class="content-section">
@@ -204,7 +237,8 @@ import {
     TrendCharts,
     Document,
     Edit,
-    Upload
+    Upload,
+    Download
 } from '@element-plus/icons-vue';
 import InspectionRecordComponent from './inspection-record-component.vue';
 import PersonnelQualificationsComponent from './personnel-qualifications-component.vue';
@@ -221,6 +255,7 @@ import SampleStorageComponent from './sample-storage-component.vue';
 import PostInspectionComponent from './post-inspection-component.vue';
 import PreSummaryComponent from './pre-summary-component.vue';
 import OnboardInspectionComponent from './onboard-inspection-component.vue';
+import { exportDataPackage } from '@/api/export';
 
 const route = useRoute();
 const router = useRouter();
@@ -233,6 +268,9 @@ const taskName = computed(() => {
 
 // 当前激活的菜单
 const activeMenu = ref('pre-voyage');
+
+// 导出相关状态
+const exportLoading = ref(false);
 
 // 菜单标题映射
 const menuTitles = {
@@ -294,6 +332,47 @@ const handlePersonnelSaveSuccess = () => {
 // 处理人员资质表取消
 const handlePersonnelCancel = () => {
     // 可以根据需要添加取消操作
+};
+
+// 处理导出数据包
+const handleExportDataPackage = async () => {
+    try {
+        exportLoading.value = true;
+        
+        console.log('开始导出数据包，任务名称:', taskName.value);
+        
+        // 调用导出API
+        const response = await exportDataPackage(taskName.value);
+        console.log('收到响应:', response);
+        
+        // 检查响应是否为Blob
+        if (response instanceof Blob) {
+            // 创建下载链接
+            const url = window.URL.createObjectURL(response);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${taskName.value}_数据包_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.zip`;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 清理URL对象
+            window.URL.revokeObjectURL(url);
+            
+            ElMessage.success('数据包导出成功！');
+        } else {
+            console.error('响应不是Blob类型:', response);
+            ElMessage.error('导出数据格式错误');
+        }
+        
+    } catch (error: any) {
+        console.error('导出数据包失败:', error);
+        ElMessage.error('导出数据包失败，请稍后重试');
+    } finally {
+        exportLoading.value = false;
+    }
 };
 
 // 组件挂载时获取任务详情（暂时留空，后续可以添加获取任务详情的逻辑）
@@ -487,5 +566,55 @@ onMounted(() => {
         order: 1;
         min-height: 400px;
     }
+}
+
+/* 导出页面样式 */
+.export-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.export-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #409eff;
+}
+
+.export-info {
+    margin-bottom: 24px;
+}
+
+.export-info p {
+    margin: 12px 0;
+    line-height: 1.6;
+}
+
+.export-list {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.export-list li {
+    margin: 8px 0;
+    color: #606266;
+    line-height: 1.5;
+}
+
+.export-actions {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.export-actions .el-button {
+    padding: 12px 32px;
+    font-size: 16px;
+    border-radius: 6px;
 }
 </style>
