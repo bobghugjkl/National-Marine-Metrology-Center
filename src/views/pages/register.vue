@@ -55,6 +55,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { Register } from '@/types/user';
 import { registerUser } from '@/api';
+import { User } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const param = reactive<Register>({

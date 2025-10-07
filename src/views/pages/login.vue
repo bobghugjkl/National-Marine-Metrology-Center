@@ -54,7 +54,6 @@ import type { FormInstance, FormRules } from 'element-plus';
 import { loginUser } from '@/api';
 import { User } from '@element-plus/icons-vue';
 
-import { User } from '@element-plus/icons-vue';
 
 interface LoginInfo {
     username: string;
