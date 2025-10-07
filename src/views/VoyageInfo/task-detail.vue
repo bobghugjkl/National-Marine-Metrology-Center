@@ -17,32 +17,33 @@
                     <el-icon><DocumentChecked /></el-icon>
                     <span>航前检查</span>
                 </el-menu-item>
-                <el-menu-item index="pre-voyage-record" class="submenu-item">航前质量监督检查记录表</el-menu-item>
-                <el-menu-item index="pre-voyage-summary" class="submenu-item">航前质量监督情况汇总表</el-menu-item>
-                <el-menu-item index="personnel-list" class="submenu-item">外业调查人员资质一览表</el-menu-item>
-                <el-menu-item index="equipment-list" class="submenu-item">仪器设备(工作计量器具)一览表</el-menu-item>
-                <el-menu-item index="investigation-projects" class="submenu-item">外业调查项目/仪器比测统计表</el-menu-item>
+                <el-menu-item index="pre-voyage-record" class="submenu-item">航前质量监督检查记录</el-menu-item>
+                <el-menu-item index="pre-voyage-summary" class="submenu-item">航前质量监督情况汇总</el-menu-item>
+                <el-menu-item index="personnel-list" class="submenu-item">外业调查人员资质一览</el-menu-item>
+                <el-menu-item index="equipment-list" class="submenu-item">仪器设备(工作计量器具)一览</el-menu-item>
+                <el-menu-item index="investigation-projects" class="submenu-item">外业调查项目/仪器比测统计</el-menu-item>
 
                 <!-- 航中检查 -->
                 <el-menu-item index="during-voyage" class="parent-menu">
                     <el-icon><Ship /></el-icon>
                     <span>航中检查</span>
                 </el-menu-item>
-                <el-menu-item index="during-personnel" class="submenu-item">外业调查人员资质一览表(航中)</el-menu-item>
-                <el-menu-item index="during-equipment" class="submenu-item">仪器设备(工作计量器具)一览表(航中)</el-menu-item>
-                <el-menu-item index="during-investigation" class="submenu-item">外业调查项目/仪器比测统计表(航中)</el-menu-item>
+                <el-menu-item index="during-personnel" class="submenu-item">外业调查人员资质一览</el-menu-item>
+                <el-menu-item index="during-equipment" class="submenu-item">仪器设备(工作计量器具)一览</el-menu-item>
+                <el-menu-item index="during-investigation" class="submenu-item">外业调查项目/仪器比测统计</el-menu-item>
                 <el-menu-item index="supervisor-log" class="submenu-item">监督员日志</el-menu-item>
-                <el-menu-item index="original-records" class="submenu-item">外业调查原始记录抽查表</el-menu-item>
-                <el-menu-item index="procedure-execution" class="submenu-item">外业调查操作规程执行统计表</el-menu-item>
-                <el-menu-item index="work-log" class="submenu-item">外业调查工作日志抽查表</el-menu-item>
-                <el-menu-item index="sample-storage" class="submenu-item">外业调查样品储存记录抽查表</el-menu-item>
-                <el-menu-item index="ship-quality" class="submenu-item">随船质量监督检查表</el-menu-item>
+                <el-menu-item index="original-records" class="submenu-item">外业调查原始记录抽查</el-menu-item>
+                <el-menu-item index="procedure-execution" class="submenu-item">外业调查操作规程执行统计</el-menu-item>
+                <el-menu-item index="work-log" class="submenu-item">外业调查工作日志抽查</el-menu-item>
+                <el-menu-item index="sample-storage" class="submenu-item">外业调查样品储存记录抽查</el-menu-item>
+                <el-menu-item index="ship-quality" class="submenu-item">随船质量监督检查</el-menu-item>
 
                 <!-- 航后检查表 -->
-                <el-menu-item index="post-voyage-record" class="parent-menu">
+                <el-menu-item index="post-voyage" class="parent-menu">
                     <el-icon><DocumentCopy /></el-icon>
-                    <span>航后检查表</span>
+                    <span>航后检查</span>
                 </el-menu-item>
+                <el-menu-item index="post-voyage-record" class="submenu-item">航后检查记录</el-menu-item>
 
                 <!-- 导入导出 -->
                 <el-menu-item index="import-export" class="parent-menu">
@@ -148,6 +149,14 @@
 
                 <div v-else-if="activeMenu === 'ship-quality'" class="content-section">
                     <onboard-inspection-component :taskName="taskName" />
+                </div>
+
+                <div v-else-if="activeMenu === 'post-voyage'" class="content-section">
+                   <h2>航后检查</h2>
+                    <p>这是航后检查模块的总览，目前包含航后检查记录项目。</p>
+                    <el-empty description="请选择具体的航后检查项目" />
+                    
+                    <!-- <post-inspection-component :taskName="taskName" />//-->
                 </div>
 
                 <div v-else-if="activeMenu === 'post-voyage-record'" class="content-section">
@@ -326,6 +335,7 @@ onMounted(() => {
     font-size: 16px;
     font-weight: 600;
     color: #409eff;
+    overflow-y: scroll;
 }
 
 .sidebar-header p {

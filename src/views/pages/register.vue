@@ -4,7 +4,7 @@
             <div class="login-header">
                <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
                  <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
-                <el-icon class="icon-login"><User />  </el-icon>
+                <el-icon class="icon-login"><User  />  </el-icon>
                 <div class="login-title">用户注册</div>
             </div>
             <el-form :model="param" :rules="rules" ref="register" size="large">
@@ -55,7 +55,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { Register } from '@/types/user';
 import { registerUser } from '@/api';
-import { User } from '@element-plus/icons-vue';
+import { User ,Right} from '@element-plus/icons-vue';
 
 const router = useRouter();
 const param = reactive<Register>({
