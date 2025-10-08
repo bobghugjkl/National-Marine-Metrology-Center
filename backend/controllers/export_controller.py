@@ -41,6 +41,44 @@ def apply_header_style(ws, headers):
         cell.fill = header_fill
         cell.alignment = header_alignment
         cell.border = thin_border
+        
+def apply_onboard_inspection_header_style(ws, headers):
+    """应用随船质量监督检查表头样式：与第一张图片一致"""
+    # 定义样式
+    header_font = Font(name='黑体', size=12, bold=True, color='000000')  # 黑体、12号、加粗、黑色
+    header_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')  # 黄色背景
+    header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)  # 自动换行
+    
+    # 应用样式到表头行（无边框）
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        # 注意：这里不添加边框，与第一张图片一致
+
+def apply_pre_voyage_inspection_header_style(ws, headers):
+    """应用航前质量监督检查记录表头样式：与第二张图片一致"""
+    # 定义样式
+    header_font = Font(name='黑体', size=12, bold=True, color='000000')  # 黑体、12号、加粗、黑色
+    header_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')  # 黄色背景
+    header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)  # 自动换行
+    
+    # 定义边框样式
+    thin_border = Border(
+        left=Side(style='thin', color='000000'),
+        right=Side(style='thin', color='000000'),
+        top=Side(style='thin', color='000000'),
+        bottom=Side(style='thin', color='000000')
+    )
+    
+    # 应用样式到表头行（有边框）
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
 
 def create_empty_excel(temp_dir, filename, headers, title):
     """创建空Excel表格"""
@@ -940,52 +978,227 @@ def generate_sample_storage_excel(task, temp_dir):
         return None
 
 def generate_onboard_inspection_excel(task, temp_dir):
-    """生成随船质量监督检查Excel表"""
+    """生成随船质量监督检查Excel表，与第二张图片完全一致"""
     try:
-        # 获取随船检查数据
-        onboard_inspection_data = OnboardInspection.query.filter_by(
-            task_name=task.task_name, 
-            user_id=task.user_id
-        ).all()
-        
-        if not onboard_inspection_data:
-            print(f"未找到随船检查数据，任务: {task.task_name}, 用户ID: {task.user_id}")
-            # 即使没有数据也创建空表格
-            onboard_inspection_data = []
-        
+        # 定义检查情况标题数组
+        check_situation_headers = [
+            '', '', '', '', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题'
+        ]
+
         # 创建工作簿
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "随船质量监督检查表"
-        
-        # 设置表头
+
+        # 第一行：标题行（使用合并单元格）
+        ws.merge_cells('A1:D1')
+        title_cell = ws.cell(row=1, column=1, value="航次任务基础信息")
+        title_cell.font = Font(name='黑体', size=12, bold=True)
+        title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        title_cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+        ws.merge_cells('E1:AB1')
+        check_title_cell = ws.cell(row=1, column=5, value="检查情况")
+        check_title_cell.font = Font(name='黑体', size=12, bold=True)
+        check_title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        check_title_cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+        # 第二行：表头字段，前4个占一列，其余检查项目占两列
         headers = [
-            '序号', '检查日期', '被检查承担单位', '被检查参加单位', '航次首席科学家', '随船质量监督员', '被检查单位主要参与人员'
+            '航次任务名称', '检查日期', '监督检查人员', '被检查单位（部门）主要参与人员',
+            '是否成立了质量保障组织机构',
+            '是否依据质量保障实施方案开展外业质量保证工作',
+            '人员持证上岗及岗前培训考核相关记录',
+            '所有仪器设备的检定/校准证书',
+            '航次过程中质量监督及整改记录',
+            '样品的现场采集、处理及储存是否执行专项调查技术规程的要求',
+            '工作日志、班报及原始记录是否齐全',
+            '所有技术文件和成果资料中的单位是否使用法定计量单位',
+            '航次任务中发生的设计仪器设备故障情况及解决措施记录是否清晰、完整',
+            '原始记录是否清晰完整，是否符合技术规程规定',
+            '原始记录签字是否完整、规范',
+            '形成的原始记录是否经过了内部质量检查，是否有质量检查记录'
         ]
-        
-        # 应用统一的表头样式
-        apply_header_style(ws, headers)
-        
-        # 写入数据
-        for row, inspection in enumerate(onboard_inspection_data, 2):
-            ws.cell(row=row, column=1, value=row-1)  # 序号
-            ws.cell(row=row, column=2, value=inspection.inspection_date or '')  # 检查日期
-            ws.cell(row=row, column=3, value=inspection.inspected_unit or '')  # 被检查承担单位
-            ws.cell(row=row, column=4, value=inspection.participating_unit or '')  # 被检查参加单位
-            ws.cell(row=row, column=5, value=inspection.chief_scientist or '')  # 航次首席科学家
-            ws.cell(row=row, column=6, value=inspection.onboard_supervisor or '')  # 随船质量监督员
-            ws.cell(row=row, column=7, value=inspection.inspected_unit_personnel or '')  # 被检查单位主要参与人员
-        
-        # 调整列宽
-        for col in range(1, len(headers) + 1):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
-        
+
+        # 第二行表头
+        col = 1
+        for i, header in enumerate(headers):
+            if i < 4:  # 前4个基本信息字段，每个占一列，且占据两行高度
+                # 合并第二行和第三行，形成高单元格
+                ws.merge_cells(start_row=2, end_row=3, start_column=col, end_column=col)
+                cell = ws.cell(row=2, column=col, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+                col += 1
+            else:  # 检查项目字段，每个占两列
+                # 合并两个单元格作为表头字段
+                ws.merge_cells(start_row=2, end_row=2, start_column=col, end_column=col+1)
+                cell = ws.cell(row=2, column=col, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col+1)].width = 15
+                col += 2
+
+        # 添加黑色边框
+        thin_border = Border(
+            left=Side(style='thin', color='000000'),
+            right=Side(style='thin', color='000000'),
+            top=Side(style='thin', color='000000'),
+            bottom=Side(style='thin', color='000000')
+        )
+
+        # 为第二行和第三行所有单元格添加边框（前4列已经被合并，所以只需要处理第二行）
+        for c in range(1, col):
+            # 为第二行添加边框
+            cell = ws.cell(row=2, column=c)
+            cell.border = thin_border
+
+            # 为第三行添加边框（前4列已经被合并，所以第三行前4列也需要边框）
+            if c <= 4:  # 前4列的第三行部分也需要边框
+                cell_third = ws.cell(row=3, column=c)
+                cell_third.border = thin_border
+
+        # 第三行：检查情况和存在问题标题（只为检查项目部分设置）
+        # 前4列留空，从第5列开始为检查项目提供检查情况和存在问题
+        check_situation_headers = [
+            '', '', '', '', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题'
+        ]
+
+        # 第三行：检查情况和存在问题标题（前4列已经被合并，所以从第5列开始）
+        # 从第5列开始为检查项目提供检查情况和存在问题标题
+        for c in range(5, col):  # 从第5列开始
+            header_index = c - 1  # 计算对应的标题索引（c=5对应索引4）
+            if header_index < len(check_situation_headers):  # 确保不越界
+                header = check_situation_headers[header_index]
+                cell = ws.cell(row=3, column=c, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                cell.border = thin_border
+
+                # 交替设置浅蓝色和浅褐色背景
+                if header == '检查情况':
+                    cell.fill = PatternFill(start_color='ADD8E6', end_color='ADD8E6', fill_type='solid')  # 浅蓝色
+                elif header == '存在问题':
+                    cell.fill = PatternFill(start_color='DEB887', end_color='DEB887', fill_type='solid')  # 浅褐色
+
+        # 从第四行开始添加数据
+        # 查询数据库中的随船质量监督检查数据
+        onboard_inspection_data = OnboardInspection.query.filter_by(
+            task_name=task.task_name,
+            user_id=task.user_id
+        ).all()
+
+        # 如果有数据，添加到第四行开始的行中
+        if onboard_inspection_data:
+            for row_idx, inspection in enumerate(onboard_inspection_data, 4):  # 从第四行开始
+                col = 1
+
+                # 前4个基本信息字段（占一列）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'task_name', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'inspection_date', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'onboard_supervisor', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'inspected_unit_personnel', ''))
+                col += 1
+
+                # 检查项目字段（每个占两列，对应检查情况和存在问题）
+                # 第1个检查项目：是否成立了质量保障组织机构（check_1）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_1', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_1_problem', ''))
+                col += 1
+
+                # 第2个检查项目：是否依据质量保障实施方案开展外业质量保证工作（check_2）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_2', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_2_problem', ''))
+                col += 1
+
+                # 第3个检查项目：人员持证上岗及岗前培训考核相关记录（check_3）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_3', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_3_problem', ''))
+                col += 1
+
+                # 第4个检查项目：所有仪器设备的检定/校准证书（check_4）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_4', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_4_problem', ''))
+                col += 1
+
+                # 第5个检查项目：航次过程中质量监督及整改记录（check_5）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_5', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_5_problem', ''))
+                col += 1
+
+                # 第6个检查项目：样品的现场采集、处理及储存是否执行专项调查技术规程的要求（check_6）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_6', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_6_problem', ''))
+                col += 1
+
+                # 第7个检查项目：工作日志、班报及原始记录是否齐全（check_7）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_7', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_7_problem', ''))
+                col += 1
+
+                # 第8个检查项目：所有技术文件和成果资料中的单位是否使用法定计量单位（check_8）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_8', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_8_problem', ''))
+                col += 1
+
+                # 第9个检查项目：航次任务中发生的设计仪器设备故障情况及解决措施记录是否清晰、完整（check_9）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_9', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_9_problem', ''))
+                col += 1
+
+                # 第10个检查项目：原始记录是否清晰完整，是否符合技术规程规定（check_10）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_10', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_10_problem', ''))
+                col += 1
+
+                # 第11个检查项目：原始记录签字是否完整、规范（check_11）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_11', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_11_problem', ''))
+                col += 1
+
+                # 第12个检查项目：形成的原始记录是否经过了内部质量检查，是否有质量检查记录（check_12）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_12', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_12_problem', ''))
+                col += 1
+
+                # 为数据行添加边框
+                for c in range(1, col):
+                    cell = ws.cell(row=row_idx, column=c)
+                    cell.border = thin_border
+
         # 保存文件
         filename = f"随船质量监督检查表_{task.task_name}.xlsx"
         filepath = os.path.join(temp_dir, filename)
         wb.save(filepath)
         return filepath
-        
+
     except Exception as e:
         print(f"生成随船质量监督检查表失败: {e}")
         return None
@@ -1042,81 +1255,209 @@ def generate_post_inspection_excel(task, temp_dir):
         return None
 
 def generate_pre_voyage_inspection_excel(task, temp_dir):
-    """生成航前质量监督检查记录Excel表"""
+    """生成航前质量监督检查记录Excel表，11个检查项"""
     try:
-        # 获取航前质量监督检查记录数据
-        pre_voyage_inspection_data = PreVoyageInspection.query.filter_by(
-            task_name=task.task_name, 
-            user_id=task.user_id
-        ).all()
-        
-        if not pre_voyage_inspection_data:
-            print(f"未找到航前质量监督检查记录数据，任务: {task.task_name}, 用户ID: {task.user_id}")
-            # 即使没有数据也创建空表格
-            pre_voyage_inspection_data = []
-        
+        # 定义检查情况标题数组（前4列留空，从第5列开始，11个检查项×2列）
+        check_situation_headers = [
+            '', '', '', '', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题',
+            '检查情况', '存在问题', '检查情况', '存在问题', '检查情况', '存在问题'
+        ]
+
         # 创建工作簿
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "航前质量监督检查记录"
-        
-        # 设置表头
+
+        # 第一行：标题行（使用合并单元格）
+        ws.merge_cells('A1:D1')
+        title_cell = ws.cell(row=1, column=1, value="航次任务基础信息")
+        title_cell.font = Font(name='黑体', size=12, bold=True)
+        title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        title_cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+        ws.merge_cells('E1:Z1')
+        check_title_cell = ws.cell(row=1, column=5, value="检查情况")
+        check_title_cell.font = Font(name='黑体', size=12, bold=True)
+        check_title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        check_title_cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+        # 第二行：表头字段，前4个占一列，其余检查项目占两列（11个检查项）
         headers = [
-            '序号', '检查日期', '监督员', '被监督单位', '检查项目1', '问题1', '检查项目2', '问题2', 
-            '检查项目3', '问题3', '检查项目4', '问题4', '检查项目5', '问题5', '检查项目6', '问题6',
-            '检查项目7', '问题7', '检查项目8', '问题8', '检查项目9', '问题9', '检查项目10', '问题10',
-            '检查项目11', '问题11', '检查详情', '检查结果', '首席科学家签名', '首席科学家签名日期',
-            '检查负责人签名', '检查负责人签名日期'
+            '航次任务名称', '检查日期', '监督单位监督人员', '被检查单位（部门）主要参与人员',
+            '是否有证了解航企安全方面、指定了替代性备选项',
+            '调查人员是否持有上岗证或培训证明',
+            '航次主管仪器设备是否齐备有效',
+            '航次所用仪器设备是否都在检定后规定有效期',
+            '航次所用仪器设备检定/校准/检测费',
+            '不具备检定/校准/检测条件的仪器设备是否经过了相应的比对方法记录',
+            '所使用检定等数据是否备齐',
+            '船运记录单或质检显示是否按其标出有效期',
+            '随船内质量新格是及见效记录',
+            '所有工作日志、班组、监据记录提交组织交代并签字须知',
+            '海员开展检验的器体、指定案签记录起点对长期照'
         ]
-        
-        # 应用统一的表头样式
-        apply_header_style(ws, headers)
-        
-        # 写入数据
-        for row, inspection in enumerate(pre_voyage_inspection_data, 2):
-            ws.cell(row=row, column=1, value=row-1)  # 序号
-            ws.cell(row=row, column=2, value=inspection.check_date or '')  # 检查日期
-            ws.cell(row=row, column=3, value=inspection.superintendent or '')  # 监督员
-            ws.cell(row=row, column=4, value=inspection.superintended or '')  # 被监督单位
-            ws.cell(row=row, column=5, value=inspection.check_1 or '')  # 检查项目1
-            ws.cell(row=row, column=6, value=inspection.check_1_problem or '')  # 问题1
-            ws.cell(row=row, column=7, value=inspection.check_2 or '')  # 检查项目2
-            ws.cell(row=row, column=8, value=inspection.check_2_problem or '')  # 问题2
-            ws.cell(row=row, column=9, value=inspection.check_3 or '')  # 检查项目3
-            ws.cell(row=row, column=10, value=inspection.check_3_problem or '')  # 问题3
-            ws.cell(row=row, column=11, value=inspection.check_4 or '')  # 检查项目4
-            ws.cell(row=row, column=12, value=inspection.check_4_problem or '')  # 问题4
-            ws.cell(row=row, column=13, value=inspection.check_5 or '')  # 检查项目5
-            ws.cell(row=row, column=14, value=inspection.check_5_problem or '')  # 问题5
-            ws.cell(row=row, column=15, value=inspection.check_6 or '')  # 检查项目6
-            ws.cell(row=row, column=16, value=inspection.check_6_problem or '')  # 问题6
-            ws.cell(row=row, column=17, value=inspection.check_7 or '')  # 检查项目7
-            ws.cell(row=row, column=18, value=inspection.check_7_problem or '')  # 问题7
-            ws.cell(row=row, column=19, value=inspection.check_8 or '')  # 检查项目8
-            ws.cell(row=row, column=20, value=inspection.check_8_problem or '')  # 问题8
-            ws.cell(row=row, column=21, value=inspection.check_9 or '')  # 检查项目9
-            ws.cell(row=row, column=22, value=inspection.check_9_problem or '')  # 问题9
-            ws.cell(row=row, column=23, value=inspection.check_10 or '')  # 检查项目10
-            ws.cell(row=row, column=24, value=inspection.check_10_problem or '')  # 问题10
-            ws.cell(row=row, column=25, value=inspection.check_11 or '')  # 检查项目11
-            ws.cell(row=row, column=26, value=inspection.check_11_problem or '')  # 问题11
-            ws.cell(row=row, column=27, value=inspection.check_detail or '')  # 检查详情
-            ws.cell(row=row, column=28, value=inspection.check_result or '')  # 检查结果
-            ws.cell(row=row, column=29, value=inspection.chief_scientist_sign or '')  # 首席科学家签名
-            ws.cell(row=row, column=30, value=inspection.chief_scientist_signdate or '')  # 首席科学家签名日期
-            ws.cell(row=row, column=31, value=inspection.check_leader_sign or '')  # 检查负责人签名
-            ws.cell(row=row, column=32, value=inspection.check_leader_signdate or '')  # 检查负责人签名日期
-        
-        # 调整列宽
-        for col in range(1, len(headers) + 1):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
-        
+
+        # 第二行表头
+        col = 1
+        for i, header in enumerate(headers):
+            if i < 4:  # 前4个基本信息字段，每个占一列，且占据两行高度
+                # 合并第二行和第三行，形成高单元格
+                ws.merge_cells(start_row=2, end_row=3, start_column=col, end_column=col)
+                cell = ws.cell(row=2, column=col, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+                col += 1
+            else:  # 检查项目字段，每个占两列
+                # 合并两个单元格作为表头字段
+                ws.merge_cells(start_row=2, end_row=2, start_column=col, end_column=col+1)
+                cell = ws.cell(row=2, column=col, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+                ws.column_dimensions[openpyxl.utils.get_column_letter(col+1)].width = 15
+                col += 2
+
+        # 添加黑色边框
+        thin_border = Border(
+            left=Side(style='thin', color='000000'),
+            right=Side(style='thin', color='000000'),
+            top=Side(style='thin', color='000000'),
+            bottom=Side(style='thin', color='000000')
+        )
+
+        # 为第二行和第三行所有单元格添加边框（前4列已经被合并，所以只需要处理第二行）
+        for c in range(1, col):
+            # 为第二行添加边框
+            cell = ws.cell(row=2, column=c)
+            cell.border = thin_border
+
+            # 为第三行添加边框（前4列已经被合并，所以第三行前4列也需要边框）
+            if c <= 4:  # 前4列的第三行部分也需要边框
+                cell_third = ws.cell(row=3, column=c)
+                cell_third.border = thin_border
+
+        # 第三行：检查情况和存在问题标题（为所有检查项目设置，包括航次作业）
+        # 从第5列开始为检查项目提供检查情况和存在问题标题
+        for c in range(5, col):  # 从第5列开始
+            header_index = c - 5  # 计算对应的标题索引
+            if header_index < len(check_situation_headers) - 4:  # 确保不越界
+                header = check_situation_headers[header_index + 4]
+                cell = ws.cell(row=3, column=c, value=header)
+                cell.font = Font(name='黑体', size=10, bold=True)
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                cell.border = thin_border
+
+                # 交替设置浅蓝色和浅褐色背景
+                if header == '检查情况':
+                    cell.fill = PatternFill(start_color='ADD8E6', end_color='ADD8E6', fill_type='solid')  # 浅蓝色
+                elif header == '存在问题':
+                    cell.fill = PatternFill(start_color='DEB887', end_color='DEB887', fill_type='solid')  # 浅褐色
+
+        # 从第四行开始添加数据
+        # 查询数据库中的航前质量监督检查数据
+        pre_voyage_inspection_data = PreVoyageInspection.query.filter_by(
+            task_name=task.task_name,
+            user_id=task.user_id
+        ).all()
+
+        # 如果有数据，添加到第四行开始的行中
+        if pre_voyage_inspection_data:
+            for row_idx, inspection in enumerate(pre_voyage_inspection_data, 4):  # 从第四行开始
+                col = 1
+
+                # 前4个基本信息字段（占一列）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'task_name', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_date', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'superintendent', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'superintended', ''))
+                col += 1
+
+                # 检查项目字段（每个占两列，对应检查情况和存在问题）
+                # 第1个检查项目：是否成立了质量保障组织机构（check_1）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_1', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_1_problem', ''))
+                col += 1
+
+                # 第2个检查项目：是否依据质量保障实施方案开展外业质量保证工作（check_2）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_2', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_2_problem', ''))
+                col += 1
+
+                # 第3个检查项目：人员持证上岗及岗前培训考核相关记录（check_3）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_3', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_3_problem', ''))
+                col += 1
+
+                # 第4个检查项目：所有仪器设备的检定/校准证书（check_4）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_4', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_4_problem', ''))
+                col += 1
+
+                # 第5个检查项目：航次过程中质量监督及整改记录（check_5）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_5', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_5_problem', ''))
+                col += 1
+
+                # 第6个检查项目：样品的现场采集、处理及储存是否执行专项调查技术规程的要求（check_6）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_6', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_6_problem', ''))
+                col += 1
+
+                # 第7个检查项目：工作日志、班报及原始记录是否齐全（check_7）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_7', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_7_problem', ''))
+                col += 1
+
+                # 第8个检查项目：所有技术文件和成果资料中的单位是否使用法定计量单位（check_8）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_8', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_8_problem', ''))
+                col += 1
+
+                # 第9个检查项目：船舶记录表单是否显示测量结果与有效期（check_9）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_9', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_9_problem', ''))
+                col += 1
+
+                # 第10个检查项目：海况记录是否齐全完整，规范（check_10）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_10', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_10_problem', ''))
+                col += 1
+
+                # 第11个检查项目：航次作业是否按照要求填写了相关记录（check_11）
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_11', ''))
+                col += 1
+                ws.cell(row=row_idx, column=col, value=getattr(inspection, 'check_11_problem', ''))
+                col += 1
+
+                # 为数据行添加边框
+                for c in range(1, col):
+                    cell = ws.cell(row=row_idx, column=c)
+                    cell.border = thin_border
+
         # 保存文件
         filename = f"航前质量监督检查记录_{task.task_name}.xlsx"
         filepath = os.path.join(temp_dir, filename)
         wb.save(filepath)
         return filepath
-        
+
     except Exception as e:
         print(f"生成航前质量监督检查记录表失败: {e}")
         return None
