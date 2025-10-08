@@ -12,12 +12,35 @@ from config.database import db
 from models import TaskInfo, PersonnelQualification, Equipment, InvestigationProject, VoyagePersonnel, VoyageEquipment, VoyageInvestigationProject, SupervisorLog, OriginalRecords, ProcedureExecution, WorkLog, SampleStorage, PostInspection, PreSummary, OnboardInspection, PreVoyageInspection
 from utils.jwt_utils import token_required
 import openpyxl
-from openpyxl.styles import Font, Alignment, Border, Side
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 export_bp = Blueprint('export', __name__, url_prefix='/api/export')
+
+def apply_header_style(ws, headers):
+    """应用统一的表头样式：黄色背景、黑色加粗字体、大字号、黑色边框"""
+    # 定义样式
+    header_font = Font(name='黑体', size=14, bold=True, color='000000')  # 黑体、14号、加粗、黑色
+    header_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')  # 黄色背景
+    header_alignment = Alignment(horizontal='center', vertical='center')
+    
+    # 定义边框样式
+    thin_border = Border(
+        left=Side(style='thin', color='000000'),
+        right=Side(style='thin', color='000000'),
+        top=Side(style='thin', color='000000'),
+        bottom=Side(style='thin', color='000000')
+    )
+    
+    # 应用样式到表头行
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
 
 def create_empty_excel(temp_dir, filename, headers, title):
     """创建空Excel表格"""
@@ -26,11 +49,8 @@ def create_empty_excel(temp_dir, filename, headers, title):
         ws = wb.active
         ws.title = title
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 调整列宽
         for col in range(1, len(headers) + 1):
@@ -330,11 +350,8 @@ def generate_personnel_qualification_excel(task, temp_dir):
             '从事专业', '本航次操作仪器', '培训情况', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, personnel in enumerate(personnel_data, 2):
@@ -368,10 +385,8 @@ def generate_personnel_qualification_excel(task, temp_dir):
             ws.title = "外业调查人员资质一览表"
             
             headers = ['序号', '姓名', '性别', '出生年月', '职称', '工作单位', '从事专业', '本航次操作仪器', '培训情况', '备注']
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
-                cell.font = Font(bold=True)
-                cell.alignment = Alignment(horizontal='center', vertical='center')
+            # 应用统一的表头样式
+            apply_header_style(ws, headers)
             
             filename = f"外业调查人员资质一览表_{task.task_name}.xlsx"
             filepath = os.path.join(temp_dir, filename)
@@ -413,11 +428,8 @@ def generate_equipment_excel(task, temp_dir):
             '检定/校准日期', '有效期', '检定/校准机构', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, equipment in enumerate(equipment_data, 2):
@@ -450,10 +462,8 @@ def generate_equipment_excel(task, temp_dir):
             ws.title = "仪器设备一览表"
             
             headers = ['序号', '设备名称', '型号规格', '出厂编号', '制造厂家', '检定/校准日期', '有效期', '检定/校准机构', '备注']
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
-                cell.font = Font(bold=True)
-                cell.alignment = Alignment(horizontal='center', vertical='center')
+            # 应用统一的表头样式
+            apply_header_style(ws, headers)
             
             filename = f"仪器设备一览表_{task.task_name}.xlsx"
             filepath = os.path.join(temp_dir, filename)
@@ -489,11 +499,8 @@ def generate_investigation_excel(task, temp_dir):
             '序号', '项目名称', '仪器设备', '比测情况', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, project in enumerate(investigation_data, 2):
@@ -542,11 +549,8 @@ def generate_voyage_personnel_excel(task, temp_dir):
             '从事专业', '本航次操作仪器', '培训情况', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, personnel in enumerate(voyage_personnel_data, 2):
@@ -600,11 +604,8 @@ def generate_voyage_equipment_excel(task, temp_dir):
             '检定/校准日期', '有效期', '检定/校准机构', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, equipment in enumerate(voyage_equipment_data, 2):
@@ -656,11 +657,8 @@ def generate_voyage_investigation_excel(task, temp_dir):
             '序号', '项目名称', '仪器设备', '比测情况', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, project in enumerate(voyage_investigation_data, 2):
@@ -708,11 +706,8 @@ def generate_supervisor_log_excel(task, temp_dir):
             '序号', '日期', '天气', '海况', '工作内容', '发现问题', '处理措施', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, log in enumerate(supervisor_log_data, 2):
@@ -763,11 +758,8 @@ def generate_original_records_excel(task, temp_dir):
             '序号', '记录类型', '抽查日期', '抽查内容', '发现问题', '处理措施', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, record in enumerate(original_records_data, 2):
@@ -817,11 +809,8 @@ def generate_procedure_execution_excel(task, temp_dir):
             '序号', '操作规程名称', '执行日期', '是否具有操作规程', '调查项目/仪器', '任务承担单位', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, procedure in enumerate(procedure_execution_data, 2):
@@ -871,11 +860,8 @@ def generate_work_log_excel(task, temp_dir):
             '序号', '记录时间', '工作日志', '抽查时间', '调查项目', '任务承担单位', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, log in enumerate(work_log_data, 2):
@@ -925,11 +911,8 @@ def generate_sample_storage_excel(task, temp_dir):
             '序号', '储存样品', '记录时间', '调查项目', '抽查时间', '合格与否', '任务承担单位', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, sample in enumerate(sample_storage_data, 2):
@@ -980,11 +963,8 @@ def generate_onboard_inspection_excel(task, temp_dir):
             '序号', '检查日期', '被检查承担单位', '被检查参加单位', '航次首席科学家', '随船质量监督员', '被检查单位主要参与人员'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, inspection in enumerate(onboard_inspection_data, 2):
@@ -1034,11 +1014,8 @@ def generate_post_inspection_excel(task, temp_dir):
             '序号', '检查日期', '检查内容', '存在问题', '整改情况', '填表时间', '备注'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, inspection in enumerate(post_inspection_data, 2):
@@ -1092,11 +1069,8 @@ def generate_pre_voyage_inspection_excel(task, temp_dir):
             '检查负责人签名', '检查负责人签名日期'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, inspection in enumerate(pre_voyage_inspection_data, 2):
@@ -1173,11 +1147,8 @@ def generate_pre_summary_excel(task, temp_dir):
             '检查结果', '相关资料', '创建时间', '更新时间'
         ]
         
-        # 写入表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # 应用统一的表头样式
+        apply_header_style(ws, headers)
         
         # 写入数据
         for row, summary in enumerate(pre_summary_data, 2):
