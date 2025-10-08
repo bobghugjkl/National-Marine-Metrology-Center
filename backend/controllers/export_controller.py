@@ -9,7 +9,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from config.database import db
-from models import TaskInfo, PersonnelQualification, Equipment, InvestigationProject, VoyagePersonnel, VoyageEquipment, VoyageInvestigationProject, SupervisorLog, OriginalRecords, ProcedureExecution, WorkLog, SampleStorage, PostInspection, PreSummary, OnboardInspection
+from models import TaskInfo, PersonnelQualification, Equipment, InvestigationProject, VoyagePersonnel, VoyageEquipment, VoyageInvestigationProject, SupervisorLog, OriginalRecords, ProcedureExecution, WorkLog, SampleStorage, PostInspection, PreSummary, OnboardInspection, PreVoyageInspection
 from utils.jwt_utils import token_required
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side
@@ -177,6 +177,24 @@ def generate_pre_voyage_forms(task, temp_dir):
         print(f"✓ 外业调查项目统计表生成成功: {investigation_file}")
     else:
         print("✗ 外业调查项目统计表生成失败")
+    
+    # 4. 航前质量监督检查记录
+    print("生成航前质量监督检查记录...")
+    pre_voyage_inspection_file = generate_pre_voyage_inspection_excel(task, temp_dir)
+    if pre_voyage_inspection_file:
+        files.append(pre_voyage_inspection_file)
+        print(f"✓ 航前质量监督检查记录生成成功: {pre_voyage_inspection_file}")
+    else:
+        print("✗ 航前质量监督检查记录生成失败")
+    
+    # 5. 航前质量监督情况汇总
+    print("生成航前质量监督情况汇总...")
+    pre_summary_file = generate_pre_summary_excel(task, temp_dir)
+    if pre_summary_file:
+        files.append(pre_summary_file)
+        print(f"✓ 航前质量监督情况汇总生成成功: {pre_summary_file}")
+    else:
+        print("✗ 航前质量监督情况汇总生成失败")
     
     print(f"航前检查表单生成完成，共{len(files)}个文件")
     return files
@@ -1044,4 +1062,151 @@ def generate_post_inspection_excel(task, temp_dir):
         
     except Exception as e:
         print(f"生成航后检查表失败: {e}")
+        return None
+
+def generate_pre_voyage_inspection_excel(task, temp_dir):
+    """生成航前质量监督检查记录Excel表"""
+    try:
+        # 获取航前质量监督检查记录数据
+        pre_voyage_inspection_data = PreVoyageInspection.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        if not pre_voyage_inspection_data:
+            print(f"未找到航前质量监督检查记录数据，任务: {task.task_name}, 用户ID: {task.user_id}")
+            # 即使没有数据也创建空表格
+            pre_voyage_inspection_data = []
+        
+        # 创建工作簿
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "航前质量监督检查记录"
+        
+        # 设置表头
+        headers = [
+            '序号', '检查日期', '监督员', '被监督单位', '检查项目1', '问题1', '检查项目2', '问题2', 
+            '检查项目3', '问题3', '检查项目4', '问题4', '检查项目5', '问题5', '检查项目6', '问题6',
+            '检查项目7', '问题7', '检查项目8', '问题8', '检查项目9', '问题9', '检查项目10', '问题10',
+            '检查项目11', '问题11', '检查详情', '检查结果', '首席科学家签名', '首席科学家签名日期',
+            '检查负责人签名', '检查负责人签名日期'
+        ]
+        
+        # 写入表头
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # 写入数据
+        for row, inspection in enumerate(pre_voyage_inspection_data, 2):
+            ws.cell(row=row, column=1, value=row-1)  # 序号
+            ws.cell(row=row, column=2, value=inspection.check_date or '')  # 检查日期
+            ws.cell(row=row, column=3, value=inspection.superintendent or '')  # 监督员
+            ws.cell(row=row, column=4, value=inspection.superintended or '')  # 被监督单位
+            ws.cell(row=row, column=5, value=inspection.check_1 or '')  # 检查项目1
+            ws.cell(row=row, column=6, value=inspection.check_1_problem or '')  # 问题1
+            ws.cell(row=row, column=7, value=inspection.check_2 or '')  # 检查项目2
+            ws.cell(row=row, column=8, value=inspection.check_2_problem or '')  # 问题2
+            ws.cell(row=row, column=9, value=inspection.check_3 or '')  # 检查项目3
+            ws.cell(row=row, column=10, value=inspection.check_3_problem or '')  # 问题3
+            ws.cell(row=row, column=11, value=inspection.check_4 or '')  # 检查项目4
+            ws.cell(row=row, column=12, value=inspection.check_4_problem or '')  # 问题4
+            ws.cell(row=row, column=13, value=inspection.check_5 or '')  # 检查项目5
+            ws.cell(row=row, column=14, value=inspection.check_5_problem or '')  # 问题5
+            ws.cell(row=row, column=15, value=inspection.check_6 or '')  # 检查项目6
+            ws.cell(row=row, column=16, value=inspection.check_6_problem or '')  # 问题6
+            ws.cell(row=row, column=17, value=inspection.check_7 or '')  # 检查项目7
+            ws.cell(row=row, column=18, value=inspection.check_7_problem or '')  # 问题7
+            ws.cell(row=row, column=19, value=inspection.check_8 or '')  # 检查项目8
+            ws.cell(row=row, column=20, value=inspection.check_8_problem or '')  # 问题8
+            ws.cell(row=row, column=21, value=inspection.check_9 or '')  # 检查项目9
+            ws.cell(row=row, column=22, value=inspection.check_9_problem or '')  # 问题9
+            ws.cell(row=row, column=23, value=inspection.check_10 or '')  # 检查项目10
+            ws.cell(row=row, column=24, value=inspection.check_10_problem or '')  # 问题10
+            ws.cell(row=row, column=25, value=inspection.check_11 or '')  # 检查项目11
+            ws.cell(row=row, column=26, value=inspection.check_11_problem or '')  # 问题11
+            ws.cell(row=row, column=27, value=inspection.check_detail or '')  # 检查详情
+            ws.cell(row=row, column=28, value=inspection.check_result or '')  # 检查结果
+            ws.cell(row=row, column=29, value=inspection.chief_scientist_sign or '')  # 首席科学家签名
+            ws.cell(row=row, column=30, value=inspection.chief_scientist_signdate or '')  # 首席科学家签名日期
+            ws.cell(row=row, column=31, value=inspection.check_leader_sign or '')  # 检查负责人签名
+            ws.cell(row=row, column=32, value=inspection.check_leader_signdate or '')  # 检查负责人签名日期
+        
+        # 调整列宽
+        for col in range(1, len(headers) + 1):
+            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+        
+        # 保存文件
+        filename = f"航前质量监督检查记录_{task.task_name}.xlsx"
+        filepath = os.path.join(temp_dir, filename)
+        wb.save(filepath)
+        return filepath
+        
+    except Exception as e:
+        print(f"生成航前质量监督检查记录表失败: {e}")
+        return None
+
+def generate_pre_summary_excel(task, temp_dir):
+    """生成航前质量监督情况汇总Excel表"""
+    try:
+        # 获取航前质量监督情况汇总数据
+        pre_summary_data = PreSummary.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        if not pre_summary_data:
+            print(f"未找到航前质量监督情况汇总数据，任务: {task.task_name}, 用户ID: {task.user_id}")
+            # 即使没有数据也创建空表格
+            pre_summary_data = []
+        
+        # 创建工作簿
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "航前质量监督情况汇总"
+        
+        # 设置表头
+        headers = [
+            '序号', '航次任务名称', '航次承担单位', '航次参与单位', '航次任务编号', '调查船', 
+            '任务负责人', '监督检查人员', '受检查单位主要参与人员', '检查日期', '检查情况', 
+            '检查结果', '相关资料', '创建时间', '更新时间'
+        ]
+        
+        # 写入表头
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # 写入数据
+        for row, summary in enumerate(pre_summary_data, 2):
+            ws.cell(row=row, column=1, value=row-1)  # 序号
+            ws.cell(row=row, column=2, value=summary.task_name or '')  # 航次任务名称
+            ws.cell(row=row, column=3, value=summary.undertaking_unit or '')  # 航次承担单位
+            ws.cell(row=row, column=4, value=summary.participating_unit or '')  # 航次参与单位
+            ws.cell(row=row, column=5, value=summary.task_code or '')  # 航次任务编号
+            ws.cell(row=row, column=6, value=summary.survey_vessel or '')  # 调查船
+            ws.cell(row=row, column=7, value=summary.task_leader or '')  # 任务负责人
+            ws.cell(row=row, column=8, value=summary.supervision_personnel or '')  # 监督检查人员
+            ws.cell(row=row, column=9, value=summary.main_participants or '')  # 受检查单位主要参与人员
+            ws.cell(row=row, column=10, value=summary.inspection_date.strftime('%Y-%m-%d') if summary.inspection_date else '')  # 检查日期
+            ws.cell(row=row, column=11, value=summary.inspection_details or '')  # 检查情况
+            ws.cell(row=row, column=12, value=summary.inspection_results or '')  # 检查结果
+            ws.cell(row=row, column=13, value=summary.related_materials or '')  # 相关资料
+            ws.cell(row=row, column=14, value=summary.created_at.strftime('%Y-%m-%d %H:%M:%S') if summary.created_at else '')  # 创建时间
+            ws.cell(row=row, column=15, value=summary.updated_at.strftime('%Y-%m-%d %H:%M:%S') if summary.updated_at else '')  # 更新时间
+        
+        # 调整列宽
+        for col in range(1, len(headers) + 1):
+            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+        
+        # 保存文件
+        filename = f"航前质量监督情况汇总_{task.task_name}.xlsx"
+        filepath = os.path.join(temp_dir, filename)
+        wb.save(filepath)
+        return filepath
+        
+    except Exception as e:
+        print(f"生成航前质量监督情况汇总表失败: {e}")
         return None
