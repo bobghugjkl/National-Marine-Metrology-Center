@@ -12,19 +12,27 @@ task_bp = Blueprint('task', __name__, url_prefix='/api')
 @task_bp.route('/tasks', methods=['GET'])
 @token_required
 def get_tasks(current_user):
-    """获取任务列表（用户隔离 - JWT认证）"""
+    """获取任务列表（用户隔离 - JWT认证，支持按任务名称模糊搜索）"""
     try:
-        # 从 JWT token 中获取用户ID（安全，无法伪造）
+        # 从 JWT token 中获取用户ID与角色
         user_id = current_user['user_id']
         user_role = current_user['role']
-        
-        # 管理员可以查看所有任务
+
+        # 查询参数
+        task_name = request.args.get('task_name', type=str)
+
+        # 基础查询（管理员可看全部，否则仅看本人）
         if user_role in ['super_admin', '管理员']:
-            tasks = TaskInfo.query.all()
+            query = TaskInfo.query
         else:
-            # 普通用户只能查看自己的任务
-            tasks = TaskInfo.query.filter_by(user_id=user_id).all()
-        
+            query = TaskInfo.query.filter_by(user_id=user_id)
+
+        # 按任务名称模糊搜索
+        if task_name:
+            query = query.filter(TaskInfo.task_name.like(f"%{task_name}%"))
+
+        tasks = query.all()
+
         task_list = [t.to_dict() for t in tasks]
         return jsonify({
             'code': 200,
@@ -33,7 +41,7 @@ def get_tasks(current_user):
                 'pageTotal': len(task_list)
             }
         })
-    except Exception as e:  
+    except Exception as e:
         return jsonify({'code': 500, 'message': str(e)}), 500
 
 @task_bp.route('/tasks', methods=['POST'])
