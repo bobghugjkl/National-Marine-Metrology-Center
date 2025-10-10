@@ -254,6 +254,15 @@ def generate_pre_voyage_forms(task, temp_dir):
     else:
         print("✗ 航前质量监督情况汇总生成失败")
     
+    # 6. 航前检查Word文档
+    print("生成航前检查Word文档...")
+    pre_voyage_word_file = generate_pre_voyage_word_document(task, temp_dir)
+    if pre_voyage_word_file:
+        files.append(pre_voyage_word_file)
+        print(f"✓ 航前检查Word文档生成成功: {pre_voyage_word_file}")
+    else:
+        print("✗ 航前检查Word文档生成失败")
+    
     print(f"航前检查表单生成完成，共{len(files)}个文件")
     return files
 
@@ -341,6 +350,15 @@ def generate_during_voyage_forms(task, temp_dir):
         print(f"✓ 随船质量监督检查表生成成功: {onboard_inspection_file}")
     else:
         print("✗ 随船质量监督检查表生成失败")
+    
+    # 10. 航中检查Word文档
+    print("生成航中检查Word文档...")
+    during_voyage_word_file = generate_during_voyage_word_document(task, temp_dir)
+    if during_voyage_word_file:
+        files.append(during_voyage_word_file)
+        print(f"✓ 航中检查Word文档生成成功: {during_voyage_word_file}")
+    else:
+        print("✗ 航中检查Word文档生成失败")
     
     print(f"航中检查表单生成完成，共{len(files)}个文件")
     return files
@@ -1521,4 +1539,1070 @@ def generate_pre_summary_excel(task, temp_dir):
         
     except Exception as e:
         print(f"生成航前质量监督情况汇总表失败: {e}")
+        return None
+
+def generate_pre_voyage_word_document(task, temp_dir):
+    """生成航前检查Word文档，包含所有航前检查表单"""
+    try:
+        # 创建Word文档
+        doc = Document()
+        
+        # 设置文档标题
+        title = doc.add_heading('航前质量监督检查记录表', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 添加空行增加间距
+        doc.add_paragraph()
+        doc.add_paragraph()
+        
+        # 添加任务信息
+        doc.add_heading('任务信息', level=1)
+        task_info_table = doc.add_table(rows=3, cols=2)
+        task_info_table.style = 'Table Grid'
+        
+        # 设置任务信息表格内容
+        task_info_table.cell(0, 0).text = '任务名称'
+        task_info_table.cell(0, 1).text = task.task_name or ''
+        task_info_table.cell(1, 0).text = '任务编号'
+        task_info_table.cell(1, 1).text = task.task_code or ''
+        task_info_table.cell(2, 0).text = '执行时间'
+        task_info_table.cell(2, 1).text = task.executiontime or ''
+        
+        # 添加空行增加间距
+        doc.add_paragraph()
+        doc.add_paragraph()
+        
+        # 1. 专项调查航前质量监督情况汇总表（附表1）
+        doc.add_heading('附表1: 专项调查航前质量监督情况汇总表', level=1)
+        
+        # 获取航前质量监督情况汇总数据
+        pre_summary_data = PreSummary.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).first()
+        
+        # 创建汇总表（无论是否有数据都显示表格结构）
+        summary_table = doc.add_table(rows=8, cols=2)
+        summary_table.style = 'Table Grid'
+        
+        if pre_summary_data:
+            # 填充汇总表数据
+            summary_table.cell(0, 0).text = '航次承担(参与)单位'
+            summary_table.cell(0, 1).text = pre_summary_data.undertaking_unit or ''
+            summary_table.cell(1, 0).text = '专项任务名称及编号'
+            summary_table.cell(1, 1).text = f"{pre_summary_data.task_name} {pre_summary_data.task_code or ''}"
+            summary_table.cell(2, 0).text = '专项任务负责人'
+            summary_table.cell(2, 1).text = pre_summary_data.task_leader or ''
+            summary_table.cell(3, 0).text = '监督检查人员'
+            summary_table.cell(3, 1).text = pre_summary_data.supervision_personnel or ''
+            summary_table.cell(4, 0).text = '受检单位'
+            summary_table.cell(4, 1).text = pre_summary_data.participating_unit or ''
+            summary_table.cell(5, 0).text = '主要参加人员'
+            summary_table.cell(5, 1).text = pre_summary_data.main_participants or ''
+            summary_table.cell(6, 0).text = '检查情况'
+            summary_table.cell(6, 1).text = pre_summary_data.inspection_details or ''
+            summary_table.cell(7, 0).text = '检查结果'
+            summary_table.cell(7, 1).text = pre_summary_data.inspection_results or ''
+        else:
+            # 如果没有数据，显示空的表格结构
+            summary_table.cell(0, 0).text = '航次承担(参与)单位'
+            summary_table.cell(0, 1).text = ''
+            summary_table.cell(1, 0).text = '专项任务名称及编号'
+            summary_table.cell(1, 1).text = f"{task.task_name} {task.task_code or ''}"
+            summary_table.cell(2, 0).text = '专项任务负责人'
+            summary_table.cell(2, 1).text = ''
+            summary_table.cell(3, 0).text = '监督检查人员'
+            summary_table.cell(3, 1).text = ''
+            summary_table.cell(4, 0).text = '受检单位'
+            summary_table.cell(4, 1).text = ''
+            summary_table.cell(5, 0).text = '主要参加人员'
+            summary_table.cell(5, 1).text = ''
+            summary_table.cell(6, 0).text = '检查情况'
+            summary_table.cell(6, 1).text = ''
+            summary_table.cell(7, 0).text = '检查结果'
+            summary_table.cell(7, 1).text = ''
+        
+        # 添加签名区域
+        doc.add_paragraph('首席科学家(技术负责人)签字: _________________ 年 月 日')
+        doc.add_paragraph('检查小组组长签字: _________________ 年 月 日')
+        
+        # 添加空行增加间距
+        doc.add_paragraph()
+        doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 2. 航次航前质量监督检查记录表（附表2）
+        doc.add_heading('附表2: 航次航前质量监督检查记录表', level=1)
+        
+        # 获取航前质量监督检查数据
+        pre_voyage_inspection_data = PreVoyageInspection.query.filter_by(
+            task_name=task.task_name,
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if pre_voyage_inspection_data:
+            for i, inspection in enumerate(pre_voyage_inspection_data):
+                if i > 0:
+                    doc.add_page_break()
+                
+                # 基本信息表格
+                basic_info_table = doc.add_table(rows=4, cols=2)
+                basic_info_table.style = 'Table Grid'
+                
+                basic_info_table.cell(0, 0).text = '被检查单位(部门)'
+                basic_info_table.cell(0, 1).text = getattr(inspection, 'superintended', '') or ''
+                basic_info_table.cell(1, 0).text = '航次任务名称'
+                basic_info_table.cell(1, 1).text = getattr(inspection, 'task_name', '') or ''
+                basic_info_table.cell(2, 0).text = '航次首席科学家'
+                basic_info_table.cell(2, 1).text = getattr(inspection, 'superintendent', '') or ''
+                basic_info_table.cell(3, 0).text = '检查日期'
+                basic_info_table.cell(3, 1).text = getattr(inspection, 'check_date', '') or ''
+                
+                # 检查项目表格
+                doc.add_heading('检查项目', level=2)
+                inspection_table = doc.add_table(rows=12, cols=4)
+                inspection_table.style = 'Table Grid'
+                
+                # 表头
+                inspection_table.cell(0, 0).text = '序号'
+                inspection_table.cell(0, 1).text = '检查内容'
+                inspection_table.cell(0, 2).text = '检查情况'
+                inspection_table.cell(0, 3).text = '存在问题'
+                
+                # 检查项目内容
+                check_items = [
+                    '是否制定了航次质量保障实施方案,指定了航次任务质量保障员,明确航次质量保障责任分工。',
+                    '调查人员是否持证上岗并经岗前强化培训。',
+                    '航次主要仪器设备是否留有备份。',
+                    '航次所用仪器是否具备相应操作规程。',
+                    '航次所用仪器设备的检定/校准/检测情况。',
+                    '不具备检定/校准/检测条件的仪器设备是否制定了相应的自校/比对/比测计划。',
+                    '所使用的标准物质是否为有证标准物质。',
+                    '船舶实验室环境设施是否满足航次任务要求。',
+                    '航前内部质量检查及整改记录。',
+                    '所有工作日志、班报、原始记录的格式、内容是否符合相关技术规程的要求。',
+                    '是否开展航次试航,并对发现的问题提出解决措施。'
+                ]
+                
+                for j, item in enumerate(check_items, 1):
+                    inspection_table.cell(j, 0).text = str(j)
+                    inspection_table.cell(j, 1).text = item
+                    inspection_table.cell(j, 2).text = getattr(inspection, f'check_{j}', '') or ''
+                    inspection_table.cell(j, 3).text = getattr(inspection, f'check_{j}_problem', '') or ''
+                
+                # 签名区域
+                doc.add_paragraph('航次首席科学家: _________________ 年 月 日')
+                doc.add_paragraph('检查小组组长: _________________ 年 月 日')
+                
+                # 添加空行增加间距
+                doc.add_paragraph()
+                doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            # 基本信息表格
+            basic_info_table = doc.add_table(rows=4, cols=2)
+            basic_info_table.style = 'Table Grid'
+            
+            basic_info_table.cell(0, 0).text = '被检查单位(部门)'
+            basic_info_table.cell(0, 1).text = ''
+            basic_info_table.cell(1, 0).text = '航次任务名称'
+            basic_info_table.cell(1, 1).text = task.task_name or ''
+            basic_info_table.cell(2, 0).text = '航次首席科学家'
+            basic_info_table.cell(2, 1).text = ''
+            basic_info_table.cell(3, 0).text = '检查日期'
+            basic_info_table.cell(3, 1).text = ''
+            
+            # 检查项目表格
+            doc.add_heading('检查项目', level=2)
+            inspection_table = doc.add_table(rows=12, cols=4)
+            inspection_table.style = 'Table Grid'
+            
+            # 表头
+            inspection_table.cell(0, 0).text = '序号'
+            inspection_table.cell(0, 1).text = '检查内容'
+            inspection_table.cell(0, 2).text = '检查情况'
+            inspection_table.cell(0, 3).text = '存在问题'
+            
+            # 检查项目内容
+            check_items = [
+                '是否制定了航次质量保障实施方案,指定了航次任务质量保障员,明确航次质量保障责任分工。',
+                '调查人员是否持证上岗并经岗前强化培训。',
+                '航次主要仪器设备是否留有备份。',
+                '航次所用仪器是否具备相应操作规程。',
+                '航次所用仪器设备的检定/校准/检测情况。',
+                '不具备检定/校准/检测条件的仪器设备是否制定了相应的自校/比对/比测计划。',
+                '所使用的标准物质是否为有证标准物质。',
+                '船舶实验室环境设施是否满足航次任务要求。',
+                '航前内部质量检查及整改记录。',
+                '所有工作日志、班报、原始记录的格式、内容是否符合相关技术规程的要求。',
+                '是否开展航次试航,并对发现的问题提出解决措施。'
+            ]
+            
+            for j, item in enumerate(check_items, 1):
+                inspection_table.cell(j, 0).text = str(j)
+                inspection_table.cell(j, 1).text = item
+                inspection_table.cell(j, 2).text = ''
+                inspection_table.cell(j, 3).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('航次首席科学家: _________________ 年 月 日')
+            doc.add_paragraph('检查小组组长: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 3. 专项调查航次外业调查人员资质一览表（附表3）
+        doc.add_heading('附表3: 专项调查航次外业调查人员资质一览表 (含参与单位)', level=1)
+        
+        # 获取人员资质数据
+        personnel_data = PersonnelQualification.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if personnel_data:
+            personnel_table = doc.add_table(rows=len(personnel_data) + 1, cols=10)
+            personnel_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '姓名', '性别', '出生年月', '职称', '工作单位', '从事专业', '本航次操作仪器', '培训情况', '备注']
+            for j, header in enumerate(headers):
+                personnel_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, personnel in enumerate(personnel_data, 1):
+                personnel_table.cell(i, 0).text = str(i)
+                personnel_table.cell(i, 1).text = personnel.name or ''
+                personnel_table.cell(i, 2).text = personnel.sex or ''
+                personnel_table.cell(i, 3).text = personnel.birthdate.strftime('%Y-%m') if personnel.birthdate else ''
+                personnel_table.cell(i, 4).text = personnel.professional_title or ''
+                personnel_table.cell(i, 5).text = personnel.employer or ''
+                personnel_table.cell(i, 6).text = personnel.specialty or ''
+                personnel_table.cell(i, 7).text = personnel.instruments or ''
+                personnel_table.cell(i, 8).text = personnel.training or ''
+                personnel_table.cell(i, 9).text = personnel.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            personnel_table = doc.add_table(rows=2, cols=10)
+            personnel_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '姓名', '性别', '出生年月', '职称', '工作单位', '从事专业', '本航次操作仪器', '培训情况', '备注']
+            for j, header in enumerate(headers):
+                personnel_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(10):
+                personnel_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 4. 专项调查航次仪器设备 (工作计量器具) 一览表（附表4）
+        doc.add_heading('附表4: 专项调查航次仪器设备 (工作计量器具) 一览表', level=1)
+        
+        # 获取设备数据
+        equipment_data = Equipment.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if equipment_data:
+            equipment_table = doc.add_table(rows=len(equipment_data) + 1, cols=10)
+            equipment_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '仪器(标准物质)名称', '编号', '型号', '量值溯源方式', '检定/校准日期', '证书编号', '有效期', '检定/校准机构', '备注']
+            for j, header in enumerate(headers):
+                equipment_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, equipment in enumerate(equipment_data, 1):
+                equipment_table.cell(i, 0).text = str(i)
+                equipment_table.cell(i, 1).text = equipment.name or ''
+                equipment_table.cell(i, 2).text = equipment.number or ''
+                equipment_table.cell(i, 3).text = equipment.model or ''
+                equipment_table.cell(i, 4).text = equipment.traceability_method or ''
+                equipment_table.cell(i, 5).text = equipment.calibration_date or ''
+                equipment_table.cell(i, 6).text = equipment.certificate_number or ''
+                equipment_table.cell(i, 7).text = equipment.validity_period or ''
+                equipment_table.cell(i, 8).text = equipment.calibration_organization or ''
+                equipment_table.cell(i, 9).text = equipment.remarks or ''
+            
+            # 添加说明
+            doc.add_paragraph('注:如仪器为自校准,请在备注中说明,并提供自校准报告复印件。')
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            equipment_table = doc.add_table(rows=2, cols=10)
+            equipment_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '仪器(标准物质)名称', '编号', '型号', '量值溯源方式', '检定/校准日期', '证书编号', '有效期', '检定/校准机构', '备注']
+            for j, header in enumerate(headers):
+                equipment_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(10):
+                equipment_table.cell(1, j).text = ''
+            
+            # 添加说明
+            doc.add_paragraph('注:如仪器为自校准,请在备注中说明,并提供自校准报告复印件。')
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 5. 专项调查航次外业调查项目/仪器比测统计表（附表5）
+        doc.add_heading('附表5: 专项调查航次外业调查项目/仪器比测统计表', level=1)
+        
+        # 获取调查项目数据
+        investigation_data = InvestigationProject.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if investigation_data:
+            investigation_table = doc.add_table(rows=len(investigation_data) + 1, cols=8)
+            investigation_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '调查项目/仪器', '比测单位甲及仪器', '比测单位乙及仪器', '比测时间', '比测地点', '比测结果', '备注']
+            for j, header in enumerate(headers):
+                investigation_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, project in enumerate(investigation_data, 1):
+                investigation_table.cell(i, 0).text = str(i)
+                investigation_table.cell(i, 1).text = project.investigation_item or ''
+                investigation_table.cell(i, 2).text = project.unit_a_instrument or ''
+                investigation_table.cell(i, 3).text = project.unit_b_instrument or ''
+                investigation_table.cell(i, 4).text = project.comparison_time or ''
+                investigation_table.cell(i, 5).text = project.comparison_location or ''
+                investigation_table.cell(i, 6).text = project.comparison_result or ''
+                investigation_table.cell(i, 7).text = project.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            investigation_table = doc.add_table(rows=2, cols=8)
+            investigation_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '调查项目/仪器', '比测单位甲及仪器', '比测单位乙及仪器', '比测时间', '比测地点', '比测结果', '备注']
+            for j, header in enumerate(headers):
+                investigation_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(8):
+                investigation_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 保存文档
+        filename = f"航前质量监督检查记录表_{task.task_name}.docx"
+        filepath = os.path.join(temp_dir, filename)
+        doc.save(filepath)
+        return filepath
+        
+    except Exception as e:
+        print(f"生成航前检查Word文档失败: {e}")
+        return None
+
+def generate_during_voyage_word_document(task, temp_dir):
+    """生成航中检查Word文档，包含所有航中检查表单"""
+    try:
+        # 创建Word文档
+        doc = Document()
+        
+        # 设置文档标题
+        title = doc.add_heading('航中质量监督检查记录表', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 添加空行增加间距
+        doc.add_paragraph()
+        doc.add_paragraph()
+        
+        # 添加任务信息
+        doc.add_heading('任务信息', level=1)
+        task_info_table = doc.add_table(rows=3, cols=2)
+        task_info_table.style = 'Table Grid'
+        
+        # 设置任务信息表格内容
+        task_info_table.cell(0, 0).text = '任务名称'
+        task_info_table.cell(0, 1).text = task.task_name or ''
+        task_info_table.cell(1, 0).text = '任务编号'
+        task_info_table.cell(1, 1).text = task.task_code or ''
+        task_info_table.cell(2, 0).text = '执行时间'
+        task_info_table.cell(2, 1).text = task.executiontime or ''
+        
+        # 添加空行增加间距
+        doc.add_paragraph()
+        doc.add_paragraph()
+        
+        # 1. 外业调查人员资质一览表（航中）
+        doc.add_heading('附表1: 外业调查人员资质一览表（航中）', level=1)
+        
+        # 获取航中人员资质数据
+        voyage_personnel_data = VoyagePersonnel.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if voyage_personnel_data:
+            personnel_table = doc.add_table(rows=len(voyage_personnel_data) + 1, cols=10)
+            personnel_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '姓名', '性别', '出生年月', '职称', '工作单位', '从事专业', '本航次操作仪器', '培训情况', '备注']
+            for j, header in enumerate(headers):
+                personnel_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, personnel in enumerate(voyage_personnel_data, 1):
+                personnel_table.cell(i, 0).text = str(i)
+                personnel_table.cell(i, 1).text = personnel.name or ''
+                personnel_table.cell(i, 2).text = personnel.sex or ''
+                personnel_table.cell(i, 3).text = personnel.birthdate.strftime('%Y-%m') if personnel.birthdate else ''
+                personnel_table.cell(i, 4).text = personnel.professional_title or ''
+                personnel_table.cell(i, 5).text = personnel.employer or ''
+                personnel_table.cell(i, 6).text = personnel.specialty or ''
+                personnel_table.cell(i, 7).text = personnel.instruments or ''
+                personnel_table.cell(i, 8).text = personnel.training or ''
+                personnel_table.cell(i, 9).text = personnel.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            personnel_table = doc.add_table(rows=2, cols=10)
+            personnel_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '姓名', '性别', '出生年月', '职称', '工作单位', '从事专业', '本航次操作仪器', '培训情况', '备注']
+            for j, header in enumerate(headers):
+                personnel_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(10):
+                personnel_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 2. 仪器设备(工作计量器具)一览表（航中）
+        doc.add_heading('附表2: 仪器设备(工作计量器具)一览表（航中）', level=1)
+        
+        # 获取航中设备数据
+        voyage_equipment_data = VoyageEquipment.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if voyage_equipment_data:
+            equipment_table = doc.add_table(rows=len(voyage_equipment_data) + 1, cols=10)
+            equipment_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '仪器(标准物质)名称', '编号', '型号', '量值溯源方式', '检定/校准日期', '证书编号', '有效期', '检定/校准机构', '备注']
+            for j, header in enumerate(headers):
+                equipment_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, equipment in enumerate(voyage_equipment_data, 1):
+                equipment_table.cell(i, 0).text = str(i)
+                equipment_table.cell(i, 1).text = equipment.name or ''
+                equipment_table.cell(i, 2).text = equipment.number or ''
+                equipment_table.cell(i, 3).text = equipment.model or ''
+                equipment_table.cell(i, 4).text = equipment.traceability_method or ''
+                equipment_table.cell(i, 5).text = equipment.calibration_date or ''
+                equipment_table.cell(i, 6).text = equipment.certificate_number or ''
+                equipment_table.cell(i, 7).text = equipment.validity_period or ''
+                equipment_table.cell(i, 8).text = equipment.calibration_organization or ''
+                equipment_table.cell(i, 9).text = equipment.remarks or ''
+            
+            # 添加说明
+            doc.add_paragraph('注:如仪器为自校准,请在备注中说明,并提供自校准报告复印件。')
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            equipment_table = doc.add_table(rows=2, cols=10)
+            equipment_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '仪器(标准物质)名称', '编号', '型号', '量值溯源方式', '检定/校准日期', '证书编号', '有效期', '检定/校准机构', '备注']
+            for j, header in enumerate(headers):
+                equipment_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(10):
+                equipment_table.cell(1, j).text = ''
+            
+            # 添加说明
+            doc.add_paragraph('注:如仪器为自校准,请在备注中说明,并提供自校准报告复印件。')
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 3. 外业调查项目/仪器比测统计表（航中）
+        doc.add_heading('附表3: 外业调查项目/仪器比测统计表（航中）', level=1)
+        
+        # 获取航中调查项目数据
+        voyage_investigation_data = VoyageInvestigationProject.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if voyage_investigation_data:
+            investigation_table = doc.add_table(rows=len(voyage_investigation_data) + 1, cols=8)
+            investigation_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '调查项目/仪器', '比测单位甲及仪器', '比测单位乙及仪器', '比测时间', '比测地点', '比测结果', '备注']
+            for j, header in enumerate(headers):
+                investigation_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, project in enumerate(voyage_investigation_data, 1):
+                investigation_table.cell(i, 0).text = str(i)
+                investigation_table.cell(i, 1).text = project.investigation_item_instrument or ''
+                investigation_table.cell(i, 2).text = project.comparison_unit_a_instrument or ''
+                investigation_table.cell(i, 3).text = project.comparison_unit_b_instrument or ''
+                investigation_table.cell(i, 4).text = project.comparison_time or ''
+                investigation_table.cell(i, 5).text = project.comparison_location or ''
+                investigation_table.cell(i, 6).text = project.comparison_result or ''
+                investigation_table.cell(i, 7).text = project.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            investigation_table = doc.add_table(rows=2, cols=8)
+            investigation_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '调查项目/仪器', '比测单位甲及仪器', '比测单位乙及仪器', '比测时间', '比测地点', '比测结果', '备注']
+            for j, header in enumerate(headers):
+                investigation_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(8):
+                investigation_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 4. 监督员日志
+        doc.add_heading('附表4: 监督员日志', level=1)
+        
+        # 获取监督员日志数据
+        supervisor_log_data = SupervisorLog.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if supervisor_log_data:
+            log_table = doc.add_table(rows=len(supervisor_log_data) + 1, cols=8)
+            log_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '日期', '天气', '海况', '工作内容', '发现问题', '处理措施', '备注']
+            for j, header in enumerate(headers):
+                log_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, log in enumerate(supervisor_log_data, 1):
+                log_table.cell(i, 0).text = str(i)
+                log_table.cell(i, 1).text = log.inspection_date or ''
+                log_table.cell(i, 2).text = ''  # 天气（数据库中没有此字段）
+                log_table.cell(i, 3).text = ''  # 海况（数据库中没有此字段）
+                log_table.cell(i, 4).text = log.inspection_content or ''
+                log_table.cell(i, 5).text = log.existing_problems or ''
+                log_table.cell(i, 6).text = log.rectification_status or ''
+                log_table.cell(i, 7).text = ''  # 备注（数据库中没有此字段）
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            log_table = doc.add_table(rows=2, cols=8)
+            log_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '日期', '天气', '海况', '工作内容', '发现问题', '处理措施', '备注']
+            for j, header in enumerate(headers):
+                log_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(8):
+                log_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 5. 外业调查原始记录抽查表
+        doc.add_heading('附表5: 外业调查原始记录抽查表', level=1)
+        
+        # 获取原始记录数据
+        original_records_data = OriginalRecords.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if original_records_data:
+            records_table = doc.add_table(rows=len(original_records_data) + 1, cols=7)
+            records_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '记录类型', '抽查日期', '抽查内容', '发现问题', '处理措施', '备注']
+            for j, header in enumerate(headers):
+                records_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, record in enumerate(original_records_data, 1):
+                records_table.cell(i, 0).text = str(i)
+                records_table.cell(i, 1).text = record.survey_item or ''
+                records_table.cell(i, 2).text = record.spot_check_time or ''
+                records_table.cell(i, 3).text = f"站位: {record.station or ''}, 时间: {record.time or ''}, 地点: {record.location or ''}"
+                records_table.cell(i, 4).text = ''  # 发现问题（数据库中没有此字段）
+                records_table.cell(i, 5).text = record.qualified_or_not or ''
+                records_table.cell(i, 6).text = record.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            records_table = doc.add_table(rows=2, cols=7)
+            records_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '记录类型', '抽查日期', '抽查内容', '发现问题', '处理措施', '备注']
+            for j, header in enumerate(headers):
+                records_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(7):
+                records_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 6. 外业调查操作规程执行统计表
+        doc.add_heading('附表6: 外业调查操作规程执行统计表', level=1)
+        
+        # 获取操作规程执行数据
+        procedure_execution_data = ProcedureExecution.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if procedure_execution_data:
+            procedure_table = doc.add_table(rows=len(procedure_execution_data) + 1, cols=7)
+            procedure_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '操作规程名称', '执行日期', '是否具有操作规程', '调查项目/仪器', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                procedure_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, procedure in enumerate(procedure_execution_data, 1):
+                procedure_table.cell(i, 0).text = str(i)
+                procedure_table.cell(i, 1).text = procedure.operating_procedure_name or ''
+                procedure_table.cell(i, 2).text = ''  # 执行日期（数据库中没有此字段）
+                procedure_table.cell(i, 3).text = procedure.has_operating_procedures or ''
+                procedure_table.cell(i, 4).text = procedure.investigation_item_instrument or ''
+                procedure_table.cell(i, 5).text = procedure.task_undertaking_unit or ''
+                procedure_table.cell(i, 6).text = procedure.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            procedure_table = doc.add_table(rows=2, cols=7)
+            procedure_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '操作规程名称', '执行日期', '是否具有操作规程', '调查项目/仪器', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                procedure_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(7):
+                procedure_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 7. 外业调查工作日志抽查表
+        doc.add_heading('附表7: 外业调查工作日志抽查表', level=1)
+        
+        # 获取工作日志数据
+        work_log_data = WorkLog.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if work_log_data:
+            work_log_table = doc.add_table(rows=len(work_log_data) + 1, cols=7)
+            work_log_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '记录时间', '工作日志', '抽查时间', '调查项目', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                work_log_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, log in enumerate(work_log_data, 1):
+                work_log_table.cell(i, 0).text = str(i)
+                work_log_table.cell(i, 1).text = log.record_time or ''
+                work_log_table.cell(i, 2).text = log.work_log or ''
+                work_log_table.cell(i, 3).text = log.spot_check_time or ''
+                work_log_table.cell(i, 4).text = log.survey_project or ''
+                work_log_table.cell(i, 5).text = log.task_undertaking_unit or ''
+                work_log_table.cell(i, 6).text = log.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            work_log_table = doc.add_table(rows=2, cols=7)
+            work_log_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '记录时间', '工作日志', '抽查时间', '调查项目', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                work_log_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(7):
+                work_log_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 8. 外业调查样品储存记录抽查表
+        doc.add_heading('附表8: 外业调查样品储存记录抽查表', level=1)
+        
+        # 获取样品储存数据
+        sample_storage_data = SampleStorage.query.filter_by(
+            task_name=task.task_name, 
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if sample_storage_data:
+            sample_table = doc.add_table(rows=len(sample_storage_data) + 1, cols=8)
+            sample_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '储存样品', '记录时间', '调查项目', '抽查时间', '合格与否', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                sample_table.cell(0, j).text = header
+            
+            # 数据行
+            for i, sample in enumerate(sample_storage_data, 1):
+                sample_table.cell(i, 0).text = str(i)
+                sample_table.cell(i, 1).text = sample.stored_samples or ''
+                sample_table.cell(i, 2).text = sample.record_time.strftime('%Y-%m-%d') if sample.record_time else ''
+                sample_table.cell(i, 3).text = sample.survey_item or ''
+                sample_table.cell(i, 4).text = sample.spot_check_time.strftime('%Y-%m-%d') if sample.spot_check_time else ''
+                sample_table.cell(i, 5).text = sample.qualified_or_not or ''
+                sample_table.cell(i, 6).text = sample.task_undertaking_unit or ''
+                sample_table.cell(i, 7).text = sample.remarks or ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            sample_table = doc.add_table(rows=2, cols=8)
+            sample_table.style = 'Table Grid'
+            
+            # 表头
+            headers = ['序号', '储存样品', '记录时间', '调查项目', '抽查时间', '合格与否', '任务承担单位', '备注']
+            for j, header in enumerate(headers):
+                sample_table.cell(0, j).text = header
+            
+            # 空数据行
+            for j in range(8):
+                sample_table.cell(1, j).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('填表人: _________________ 审核: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 添加分页符
+        doc.add_page_break()
+        
+        # 9. 随船质量监督检查表
+        doc.add_heading('附表9: 随船质量监督检查表', level=1)
+        
+        # 获取随船质量监督检查数据
+        onboard_inspection_data = OnboardInspection.query.filter_by(
+            task_name=task.task_name,
+            user_id=task.user_id
+        ).all()
+        
+        # 无论是否有数据都显示表格结构
+        if onboard_inspection_data:
+            for i, inspection in enumerate(onboard_inspection_data):
+                if i > 0:
+                    doc.add_page_break()
+                
+                # 基本信息表格
+                basic_info_table = doc.add_table(rows=4, cols=2)
+                basic_info_table.style = 'Table Grid'
+                
+                basic_info_table.cell(0, 0).text = '航次任务名称'
+                basic_info_table.cell(0, 1).text = getattr(inspection, 'task_name', '') or ''
+                basic_info_table.cell(1, 0).text = '检查日期'
+                basic_info_table.cell(1, 1).text = getattr(inspection, 'inspection_date', '') or ''
+                basic_info_table.cell(2, 0).text = '监督检查人员'
+                basic_info_table.cell(2, 1).text = getattr(inspection, 'onboard_supervisor', '') or ''
+                basic_info_table.cell(3, 0).text = '被检查单位（部门）主要参与人员'
+                basic_info_table.cell(3, 1).text = getattr(inspection, 'inspected_unit_personnel', '') or ''
+                
+                # 检查项目表格
+                doc.add_heading('检查项目', level=2)
+                inspection_table = doc.add_table(rows=13, cols=4)
+                inspection_table.style = 'Table Grid'
+                
+                # 表头
+                inspection_table.cell(0, 0).text = '序号'
+                inspection_table.cell(0, 1).text = '检查内容'
+                inspection_table.cell(0, 2).text = '检查情况'
+                inspection_table.cell(0, 3).text = '存在问题'
+                
+                # 检查项目内容
+                check_items = [
+                    '是否成立了质量保障组织机构',
+                    '是否依据质量保障实施方案开展外业质量保证工作',
+                    '人员持证上岗及岗前培训考核相关记录',
+                    '所有仪器设备的检定/校准证书',
+                    '航次过程中质量监督及整改记录',
+                    '样品的现场采集、处理及储存是否执行专项调查技术规程的要求',
+                    '工作日志、班报及原始记录是否齐全',
+                    '所有技术文件和成果资料中的单位是否使用法定计量单位',
+                    '航次任务中发生的设计仪器设备故障情况及解决措施记录是否清晰、完整',
+                    '原始记录是否清晰完整，是否符合技术规程规定',
+                    '原始记录签字是否完整、规范',
+                    '形成的原始记录是否经过了内部质量检查，是否有质量检查记录'
+                ]
+                
+                for j, item in enumerate(check_items, 1):
+                    inspection_table.cell(j, 0).text = str(j)
+                    inspection_table.cell(j, 1).text = item
+                    inspection_table.cell(j, 2).text = getattr(inspection, f'check_{j}', '') or ''
+                    inspection_table.cell(j, 3).text = getattr(inspection, f'check_{j}_problem', '') or ''
+                
+                # 签名区域
+                doc.add_paragraph('航次首席科学家: _________________ 年 月 日')
+                doc.add_paragraph('检查小组组长: _________________ 年 月 日')
+                
+                # 添加空行增加间距
+                doc.add_paragraph()
+                doc.add_paragraph()
+        else:
+            # 如果没有数据，显示空的表格结构
+            # 基本信息表格
+            basic_info_table = doc.add_table(rows=4, cols=2)
+            basic_info_table.style = 'Table Grid'
+            
+            basic_info_table.cell(0, 0).text = '航次任务名称'
+            basic_info_table.cell(0, 1).text = task.task_name or ''
+            basic_info_table.cell(1, 0).text = '检查日期'
+            basic_info_table.cell(1, 1).text = ''
+            basic_info_table.cell(2, 0).text = '监督检查人员'
+            basic_info_table.cell(2, 1).text = ''
+            basic_info_table.cell(3, 0).text = '被检查单位（部门）主要参与人员'
+            basic_info_table.cell(3, 1).text = ''
+            
+            # 检查项目表格
+            doc.add_heading('检查项目', level=2)
+            inspection_table = doc.add_table(rows=13, cols=4)
+            inspection_table.style = 'Table Grid'
+            
+            # 表头
+            inspection_table.cell(0, 0).text = '序号'
+            inspection_table.cell(0, 1).text = '检查内容'
+            inspection_table.cell(0, 2).text = '检查情况'
+            inspection_table.cell(0, 3).text = '存在问题'
+            
+            # 检查项目内容
+            check_items = [
+                '是否成立了质量保障组织机构',
+                '是否依据质量保障实施方案开展外业质量保证工作',
+                '人员持证上岗及岗前培训考核相关记录',
+                '所有仪器设备的检定/校准证书',
+                '航次过程中质量监督及整改记录',
+                '样品的现场采集、处理及储存是否执行专项调查技术规程的要求',
+                '工作日志、班报及原始记录是否齐全',
+                '所有技术文件和成果资料中的单位是否使用法定计量单位',
+                '航次任务中发生的设计仪器设备故障情况及解决措施记录是否清晰、完整',
+                '原始记录是否清晰完整，是否符合技术规程规定',
+                '原始记录签字是否完整、规范',
+                '形成的原始记录是否经过了内部质量检查，是否有质量检查记录'
+            ]
+            
+            for j, item in enumerate(check_items, 1):
+                inspection_table.cell(j, 0).text = str(j)
+                inspection_table.cell(j, 1).text = item
+                inspection_table.cell(j, 2).text = ''
+                inspection_table.cell(j, 3).text = ''
+            
+            # 签名区域
+            doc.add_paragraph('航次首席科学家: _________________ 年 月 日')
+            doc.add_paragraph('检查小组组长: _________________ 年 月 日')
+            
+            # 添加空行增加间距
+            doc.add_paragraph()
+            doc.add_paragraph()
+        
+        # 保存文档
+        filename = f"航中质量监督检查记录表_{task.task_name}.docx"
+        filepath = os.path.join(temp_dir, filename)
+        doc.save(filepath)
+        return filepath
+        
+    except Exception as e:
+        print(f"生成航中检查Word文档失败: {e}")
         return None
