@@ -223,48 +223,44 @@ export const ringOptions = {
     ],
 };
 
-export const dashOpt1 = {
-    xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    },
-    yAxis: {
-        type: 'value',
-    },
-    grid: {
-        top: '2%',
-        left: '2%',
-        right: '3%',
-        bottom: '2%',
-        containLabel: true,
-    },
-    color: ['#009688', '#f44336'],
-    series: [
-        {
-            type: 'line',
-            areaStyle: {
-                color: new graphic.LinearGradient(0, 0, 0, 1, [
-                    {
-                        offset: 0,
-                        color: 'rgba(0, 150, 136,0.8)',
-                    },
-                    {
-                        offset: 1,
-                        color: 'rgba(0, 150, 136,0.2)',
-                    },
-                ]),
-            },
-            smooth: true,
-            data: [120, 132, 301, 134, 90, 230, 210],
-        },
-        {
-            type: 'line',
-            smooth: true,
-            data: [220, 122, 191, 234, 190, 130, 310],
-        },
-    ],
+export const dashOpt1 =  {
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'shadow'
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      data: ['单位1', '单位2', '单位3', '单位4', '单位5', '单位6', '单位7'],
+      axisTick: {
+        alignWithLabel: true
+      }
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'Direct',
+      type: 'bar',
+      barWidth: '40%',
+      data: [10, 52, 200, 334, 390, 330, 220]
+    }
+  ]
 };
+
+
 
 export const dashOpt2 = {
     legend: {
@@ -283,11 +279,67 @@ export const dashOpt2 = {
                 borderWidth: 2,
             },
             data: [
-                { value: 1048, name: '数码' },
-                { value: 735, name: '食品' },
-                { value: 580, name: '母婴' },
-                { value: 484, name: '家电' },
-                { value: 300, name: '运动' },
+                { value: 1048, name: '航前' },
+                { value: 735, name: '航中' },
+                { value: 580, name: '完成' },
+               
+            ],
+        },
+    ],
+};
+
+export const dashOpt3 = {
+   xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: ['调查船1', '调查船2', '调查船3', '调查船4', '调查船5', '调查船6', '调查船7'],
+    },
+    yAxis: {
+        type: 'value',
+        axisLabel: {
+            margin: 50,        // 标签离 Y 轴线的距离
+        },
+    },
+    grid: {
+        top: '2%',
+        left: '2%',
+        right: '3%',
+        bottom: '2%',
+        containLabel: true,
+    },
+    color: ['#a2ca12ff', '#f44336'],
+    series: [
+     
+        {
+            type: 'bar',
+            barWidth: '40%', // 控制柱子宽度
+            smooth: true,
+            data: [220, 122, 191, 234, 190, 130, 310],
+        },
+    ],
+};
+
+export const dashOpt4 = {
+    legend: {
+        bottom: '1%',
+        left: 'center',
+    },
+    color: ['#3f51b5', '#009688', '#f44336', '#00bcd4', '#1ABC9C'],
+    series: [
+        {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+                borderRadius: 10,
+                borderColor: '#fff',
+                borderWidth: 2,
+            },
+            data: [
+                { value: 1048, name: '教授' },
+                { value: 735, name: '高级职称' },
+                { value: 580, name: '中级职称' },
+                { value: 580, name: '其他' },
             ],
         },
     ],

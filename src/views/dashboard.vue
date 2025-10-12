@@ -4,44 +4,44 @@
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg1">
-                        <User />
+                        <Ship />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color1" :end="6666" />
-                        <div>用户访问量</div>
+                        <countup class="card-num color1" :end="4" />
+                        <div>航次任务</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg2">
-                        <ChatDotRound />
+                        <User />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color2" :end="168" />
-                        <div>系统消息</div>
+                        <countup class="card-num color2" :end="18" />
+                        <div>专家人才</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg3">
-                        <Goods />
+                        <Document   />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color3" :end="8888" />
-                        <div>商品数量</div>
+                        <countup class="card-num color3" :end="8" />
+                        <div>任务单位</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg4">
-                        <ShoppingCartFull />
+                        <Monitor  />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color4" :end="568" />
-                        <div>今日订单量</div>
+                        <countup class="card-num color4" :end="15" />
+                        <div>仪器设备</div>
                     </div>
                 </el-card>
             </el-col>
@@ -51,78 +51,45 @@
             <el-col :span="18">
                 <el-card shadow="hover">
                     <div class="card-header">
-                        <p class="card-header-title">订单动态</p>
-                        <p class="card-header-desc">最近一周订单状态，包括订单成交量和订单退货量</p>
+                        <p class="card-header-title">单位承担航次</p>
+                        <p class="card-header-desc">最近一年不同单位承担的航次数量</p>
                     </div>
                     <v-chart class="chart" :option="dashOpt1" />
                 </el-card>
             </el-col>
+
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="card-header">
-                        <p class="card-header-title">品类分布</p>
-                        <p class="card-header-desc">最近一个月销售商品的品类情况</p>
+                        <p class="card-header-title">专家人才详情</p>
+                        <p class="card-header-desc">专家人才信息统计</p>
+                    </div>
+                     <v-chart class="chart" :option="dashOpt4" />
+                </el-card>
+            </el-col>          
+            
+        </el-row>
+        <el-row :gutter="20" class="mgb20">
+            <el-col :span="12">
+                <el-card shadow="hover">
+                    <div class="card-header">
+                        <p class="card-header-title">航次任务完成情况</p>
+                        <p class="card-header-desc">最近一年航次任务的完成情况</p>
                     </div>
                     <v-chart class="chart" :option="dashOpt2" />
                 </el-card>
             </el-col>
-        </el-row>
-        <el-row :gutter="20">
-            <el-col :span="7">
-                <el-card shadow="hover" :body-style="{ height: '400px' }">
+            <el-col :span="12">
+                <el-card shadow="hover">
                     <div class="card-header">
-                        <p class="card-header-title">时间线</p>
-                        <p class="card-header-desc">最新的销售动态和活动信息</p>
+                        <p class="card-header-title">调查船航次</p>
+                        <p class="card-header-desc">最近一年调查船承担的的任务航次情况</p>
                     </div>
-                    <el-timeline>
-                        <el-timeline-item v-for="(activity, index) in activities" :key="index" :color="activity.color">
-                            <div class="timeline-item">
-                                <div>
-                                    <p>{{ activity.content }}</p>
-                                    <p class="timeline-desc">{{ activity.description }}</p>
-                                </div>
-                                <div class="timeline-time">{{ activity.timestamp }}</div>
-                            </div>
-                        </el-timeline-item>
-                    </el-timeline>
-                </el-card>
-            </el-col>
-            <el-col :span="10">
-                <el-card shadow="hover" :body-style="{ height: '400px' }">
-                    <div class="card-header">
-                        <p class="card-header-title">渠道统计</p>
-                        <p class="card-header-desc">最近一个月的订单来源统计</p>
-                    </div>
-                    <v-chart class="map-chart" :option="mapOptions" />
-                </el-card>
-            </el-col>
-            <el-col :span="7">
-                <el-card shadow="hover" :body-style="{ height: '400px' }">
-                    <div class="card-header">
-                        <p class="card-header-title">排行榜</p>
-                        <p class="card-header-desc">销售商品的热门榜单Top5</p>
-                    </div>
-                    <div>
-                        <div class="rank-item" v-for="(rank, index) in ranks">
-                            <div class="rank-item-avatar">{{ index + 1 }}</div>
-                            <div class="rank-item-content">
-                                <div class="rank-item-top">
-                                    <div class="rank-item-title">{{ rank.title }}</div>
-                                    <div class="rank-item-desc">销量：{{ rank.value }}</div>
-                                </div>
-                                <el-progress
-                                    :show-text="false"
-                                    striped
-                                    :stroke-width="10"
-                                    :percentage="rank.percent"
-                                    :color="rank.color"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <v-chart class="chart" :option="dashOpt3" />
                 </el-card>
             </el-col>
         </el-row>
+     
     </div>
 </template>
 
@@ -138,9 +105,10 @@ import {
     VisualMapComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import VChart from 'vue-echarts';
-import { dashOpt1, dashOpt2, mapOptions } from './chart/options';
+import VChart, { THEME_KEY } from 'vue-echarts';
+import { dashOpt1, dashOpt2, dashOpt3, dashOpt4, mapOptions } from './chart/options';
 import chinaMap from '@/utils/china';
+import TaskDetail from './VoyageInfo/task-detail.vue';
 use([
     CanvasRenderer,
     BarChart,
