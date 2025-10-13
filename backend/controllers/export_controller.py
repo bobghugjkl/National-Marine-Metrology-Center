@@ -16,6 +16,7 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_ALIGN_VERTICAL
 
 export_bp = Blueprint('export', __name__, url_prefix='/api/export')
 
@@ -1568,73 +1569,122 @@ def generate_pre_voyage_word_document(task, temp_dir):
         task_info_table.cell(2, 0).text = '执行时间'
         task_info_table.cell(2, 1).text = task.executiontime or ''
         
-        # 添加空行增加间距
-        doc.add_paragraph()
-        doc.add_paragraph()
+        # 添加分页符，确保附表1另起一页
+        doc.add_page_break()
         
         # 1. 专项调查航前质量监督情况汇总表（附表1）
-        doc.add_heading('附表1: 专项调查航前质量监督情况汇总表', level=1)
+        # 添加附表1标题（左上角）
+        appendix1_para = doc.add_paragraph()
+        appendix1_run = appendix1_para.add_run('附表1')
+        appendix1_run.font.size = 12
+        appendix1_run.font.bold = True
         
+        # 添加主标题（居中）
+        main_title_para = doc.add_paragraph()
+        main_title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        main_title_run = main_title_para.add_run('专项调查航前质量监督情况汇总表')
+        main_title_run.font.size = 16
+        main_title_run.font.bold = True
+        
+        # 添加空行
+        
+        doc.add_heading('附表1: 航前质量监督情况汇总', level=1)
         # 获取航前质量监督情况汇总数据
         pre_summary_data = PreSummary.query.filter_by(
             task_name=task.task_name, 
             user_id=task.user_id
         ).first()
         
-        # 创建汇总表（无论是否有数据都显示表格结构）
-        summary_table = doc.add_table(rows=8, cols=2)
-        summary_table.style = 'Table Grid'
+        # 创建一个大表格，包含所有内容（4列以支持复杂布局）
+        main_table = doc.add_table(rows=9, cols=4)
+        main_table.style = 'Table Grid'
         
-        if pre_summary_data:
-            # 填充汇总表数据
-            summary_table.cell(0, 0).text = '航次承担(参与)单位'
-            summary_table.cell(0, 1).text = pre_summary_data.undertaking_unit or ''
-            summary_table.cell(1, 0).text = '专项任务名称及编号'
-            summary_table.cell(1, 1).text = f"{pre_summary_data.task_name} {pre_summary_data.task_code or ''}"
-            summary_table.cell(2, 0).text = '专项任务负责人'
-            summary_table.cell(2, 1).text = pre_summary_data.task_leader or ''
-            summary_table.cell(3, 0).text = '监督检查人员'
-            summary_table.cell(3, 1).text = pre_summary_data.supervision_personnel or ''
-            summary_table.cell(4, 0).text = '受检单位'
-            summary_table.cell(4, 1).text = pre_summary_data.participating_unit or ''
-            summary_table.cell(5, 0).text = '主要参加人员'
-            summary_table.cell(5, 1).text = pre_summary_data.main_participants or ''
-            summary_table.cell(6, 0).text = '检查情况'
-            summary_table.cell(6, 1).text = pre_summary_data.inspection_details or ''
-            summary_table.cell(7, 0).text = '检查结果'
-            summary_table.cell(7, 1).text = pre_summary_data.inspection_results or ''
-        else:
-            # 如果没有数据，显示空的表格结构
-            summary_table.cell(0, 0).text = '航次承担(参与)单位'
-            summary_table.cell(0, 1).text = ''
-            summary_table.cell(1, 0).text = '专项任务名称及编号'
-            summary_table.cell(1, 1).text = f"{task.task_name} {task.task_code or ''}"
-            summary_table.cell(2, 0).text = '专项任务负责人'
-            summary_table.cell(2, 1).text = ''
-            summary_table.cell(3, 0).text = '监督检查人员'
-            summary_table.cell(3, 1).text = ''
-            summary_table.cell(4, 0).text = '受检单位'
-            summary_table.cell(4, 1).text = ''
-            summary_table.cell(5, 0).text = '主要参加人员'
-            summary_table.cell(5, 1).text = ''
-            summary_table.cell(6, 0).text = '检查情况'
-            summary_table.cell(6, 1).text = ''
-            summary_table.cell(7, 0).text = '检查结果'
-            summary_table.cell(7, 1).text = ''
+        # 设置表格样式
+        for row in main_table.rows:
+            for cell in row.cells:
+                cell.vertical_alignment = WD_ALIGN_VERTICAL.TOP
+                for paragraph in cell.paragraphs:
+                    paragraph.paragraph_format.space_before = 0
+                    paragraph.paragraph_format.space_after = 0
+                    paragraph.paragraph_format.line_spacing = 1.0
+
+        # 第一行：附表1标题 + 航次承担(参与)单位
+        main_table.cell(0, 0).text = '附表1'
+        main_table.cell(0, 1).text = '航次承担(参与)单位'
+        main_table.cell(0, 2).text = pre_summary_data.undertaking_unit if pre_summary_data else ''
+        main_table.cell(0, 2).merge(main_table.cell(0, 3))
+
+        # 第二行：专项任务名称及编号 | 任务内容 | 调查船 | 调查船内容
+        main_table.cell(1, 0).text = '专项任务名称及编号'
+        main_table.cell(1, 1).text = pre_summary_data.task_name if pre_summary_data else ''
+        main_table.cell(1, 2).text = '调查船'
+        main_table.cell(1, 3).text = pre_summary_data.survey_vessel if pre_summary_data else ''
+
+        # 第三行：专项任务负责人 | 负责人内容 | 检查日期 | 日期内容
+        main_table.cell(2, 0).text = '专项任务负责人'
+        main_table.cell(2, 1).text = pre_summary_data.task_leader if pre_summary_data else ''
+        main_table.cell(2, 2).text = '检查日期'
+        main_table.cell(2, 3).text = pre_summary_data.inspection_date.strftime('%Y-%m-%d') if pre_summary_data and pre_summary_data.inspection_date else ''
+
+        # 第四行：监督检查人员（合并后三列）
+        main_table.cell(3, 0).text = '监督检查人员'
+        main_table.cell(3, 1).text = pre_summary_data.supervision_personnel if pre_summary_data else ''
+        main_table.cell(3, 1).merge(main_table.cell(3, 3))
+
+        # 第五行：受检单位（合并后三列）
+        main_table.cell(4, 0).text = '受检单位'
+        main_table.cell(4, 1).text = pre_summary_data.participating_unit if pre_summary_data else ''
+        main_table.cell(4, 1).merge(main_table.cell(4, 3))
+
+        # 第六行：主要参加人员（合并后三列）
+        main_table.cell(5, 0).text = '主要参加人员'
+        main_table.cell(5, 1).text = pre_summary_data.main_participants if pre_summary_data else ''
+        main_table.cell(5, 1).merge(main_table.cell(5, 3))
+
+        # 第七行：检查情况（合并所有列，大矩形框）
+        main_table.cell(6, 0).text = '检查情况:'
+        main_table.cell(6, 1).text = pre_summary_data.inspection_details if pre_summary_data else ''
+        main_table.cell(6, 0).merge(main_table.cell(6, 3))
+
+        # 第八行：检查结果（合并所有列，大矩形框）
+        main_table.cell(7, 0).text = '检查结果:'
+        main_table.cell(7, 1).text = pre_summary_data.inspection_results if pre_summary_data else ''
+        main_table.cell(7, 0).merge(main_table.cell(7, 3))
+
+        # 第九行：签名区域（合并所有列）
+        signature_cell = main_table.cell(8, 0)
+        signature_cell.text = '首席科学家(技术负责人)签字:                    年    月    日\n\n检查小组组长签字:                    年    月    日'
+        main_table.cell(8, 0).merge(main_table.cell(8, 3))
+
+        # 设置单元格高度以匹配图片中的比例
+        # 检查情况占较大空间，但调整为一页内显示
+        main_table.rows[6].height = Inches(2.5)  # 检查情况行高（减小）
+        main_table.rows[7].height = Inches(1.5)  # 检查结果行高（减小）
+        main_table.rows[8].height = Inches(0.8)  # 签名区域行高（减小）
         
-        # 添加签名区域
-        doc.add_paragraph('首席科学家(技术负责人)签字: _________________ 年 月 日')
-        doc.add_paragraph('检查小组组长签字: _________________ 年 月 日')
-        
-        # 添加空行增加间距
-        doc.add_paragraph()
-        doc.add_paragraph()
-        
-        # 添加分页符
+        # 添加分页符，确保下一个附表另起一页
         doc.add_page_break()
-        
+        doc.add_heading('附表2: 航前质量监督检查记录', level=1)
         # 2. 航次航前质量监督检查记录表（附表2）
-        doc.add_heading('附表2: 航次航前质量监督检查记录表', level=1)
+        # 添加附表2标题（左上角）
+        appendix2_para = doc.add_paragraph()
+        appendix2_run = appendix2_para.add_run('附表 2')
+        appendix2_run.font.size = 12
+        appendix2_run.font.bold = True
+        
+        # 添加主标题（居中）
+        main_title_para = doc.add_paragraph()
+        main_title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        main_title_run = main_title_para.add_run('航次航前质量监督检查记录表')
+        main_title_run.font.size = 16
+        main_title_run.font.bold = True
+        
+        # 添加页码（右上角）
+        page_para = doc.add_paragraph()
+        page_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        page_run = page_para.add_run('第1页 共2页')
+        page_run.font.size = 10
+        
         
         # 获取航前质量监督检查数据
         pre_voyage_inspection_data = PreVoyageInspection.query.filter_by(
@@ -1648,18 +1698,50 @@ def generate_pre_voyage_word_document(task, temp_dir):
                 if i > 0:
                     doc.add_page_break()
                 
-                # 基本信息表格
-                basic_info_table = doc.add_table(rows=4, cols=2)
-                basic_info_table.style = 'Table Grid'
+                # 创建信息表格（4列以支持复杂布局）
+                info_table = doc.add_table(rows=5, cols=4)
+                info_table.style = 'Table Grid'
                 
-                basic_info_table.cell(0, 0).text = '被检查单位(部门)'
-                basic_info_table.cell(0, 1).text = getattr(inspection, 'superintended', '') or ''
-                basic_info_table.cell(1, 0).text = '航次任务名称'
-                basic_info_table.cell(1, 1).text = getattr(inspection, 'task_name', '') or ''
-                basic_info_table.cell(2, 0).text = '航次首席科学家'
-                basic_info_table.cell(2, 1).text = getattr(inspection, 'superintendent', '') or ''
-                basic_info_table.cell(3, 0).text = '检查日期'
-                basic_info_table.cell(3, 1).text = getattr(inspection, 'check_date', '') or ''
+                # 设置表格样式
+                for row in info_table.rows:
+                    for cell in row.cells:
+                        cell.vertical_alignment = WD_ALIGN_VERTICAL.TOP
+                        for paragraph in cell.paragraphs:
+                            paragraph.paragraph_format.space_before = 0
+                            paragraph.paragraph_format.space_after = 0
+                            paragraph.paragraph_format.line_spacing = 1.0
+                
+                # 第一行：被检查单位(部门)（合并后三列）
+                info_table.cell(0, 0).text = '被检查单位(部门)'
+                info_table.cell(0, 1).text = getattr(inspection, 'superintended', '') or ''
+                info_table.cell(0, 1).merge(info_table.cell(0, 3))
+                
+                # 第二行：航次任务名称 | 航次任务编号
+                info_table.cell(1, 0).text = '航次任务名称'
+                info_table.cell(1, 1).text = getattr(inspection, 'task_name', '') or ''
+                info_table.cell(1, 2).text = '航次任务编号'
+                info_table.cell(1, 3).text = task.task_code or ''
+                
+                # 第三行：航次首席科学家 | 检查日期
+                info_table.cell(2, 0).text = '航次首席科学家'
+                info_table.cell(2, 1).text = getattr(inspection, 'superintendent', '') or ''
+                info_table.cell(2, 2).text = '检查日期'
+                info_table.cell(2, 3).text = getattr(inspection, 'check_date', '') or ''
+                
+                # 第四行：监督检查人员（合并后三列）
+                info_table.cell(3, 0).text = '监督检查人员'
+                info_table.cell(3, 1).text = getattr(inspection, 'superintendent', '') or ''
+                info_table.cell(3, 1).merge(info_table.cell(3, 3))
+                
+                # 第五行：被检查单位(部门)主要参加人员（合并后三列）
+                info_table.cell(4, 0).text = '被检查单位(部门)主要参加人员'
+                # 从航前质量监督情况汇总表获取主要参与人员
+                pre_summary_for_inspection = PreSummary.query.filter_by(
+                    task_name=task.task_name, 
+                    user_id=task.user_id
+                ).first()
+                info_table.cell(4, 1).text = pre_summary_for_inspection.main_participants if pre_summary_for_inspection else ''
+                info_table.cell(4, 1).merge(info_table.cell(4, 3))
                 
                 # 检查项目表格
                 doc.add_heading('检查项目', level=2)
