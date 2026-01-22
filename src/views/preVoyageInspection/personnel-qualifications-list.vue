@@ -47,7 +47,7 @@
 import { ref, reactive } from 'vue';
 import { ElMessage, } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
-import { fetchPersonnelQualifications } from '@/api/personnel';
+import { getPersonnelQualifications } from '@/api/personnel';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -129,7 +129,7 @@ const getData = async () => {
 			pageSize: page.size,
 			...query
 		};
-		const res = await fetchPersonnelQualifications(params);
+		const res = await getPersonnelQualifications(params);
 		tableData.value = res.data.list || [];
 		
 		// 正确处理分页总数
