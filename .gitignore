@@ -28,7 +28,7 @@ node_modules
 *.swp
 *.swo
 # 本地数据库备份
-*.sql
+# *.sql
 
 # 系统文件
 .DS_Store

@@ -417,8 +417,8 @@ const formRules = {
 };
 
 // 上传相关
-const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/investigation-projects/upload`;
-const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/investigation-projects/import`;
+const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://39.105.158.84:5000/api'}/investigation-projects/upload`;
+const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://39.105.158.84:5000/api'}/investigation-projects/import`;
 
 const uploadHeaders = computed(() => {
 	const token = localStorage.getItem('token');

@@ -538,7 +538,7 @@ const handleDownloadTemplate = async () => {
 const importVisible = ref(false);
 const importUploadRef = ref();
 
-const importUrl = ref(`${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications-during/import`);
+const importUrl = ref(`${import.meta.env.VITE_APP_BASE_API || 'http://39.105.158.84:5000/api'}/personnel-qualifications-during/import`);
 
 const uploadHeaders = computed(() => {
 	const token = localStorage.getItem('token');

@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestCo
 
 const service: AxiosInstance = axios.create({
     // 恢复原始baseURL配置
-    baseURL: 'http://localhost:5000/api',
+    baseURL: 'http://39.105.158.84:5000/api',
     timeout: 10000,
     // 移除withCredentials以避免CORS问题
     withCredentials: false

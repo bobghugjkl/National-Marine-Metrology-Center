@@ -425,8 +425,8 @@ const formRules = {
 };
 
 // 上传相关
-const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/upload`;
-const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://localhost:5000/api'}/personnel-qualifications/import`;
+const uploadUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://39.105.158.84:5000/api'}/personnel-qualifications/upload`;
+const importUrl = `${import.meta.env.VITE_APP_BASE_API || 'http://39.105.158.84:5000/api'}/personnel-qualifications/import`;
 
 const uploadHeaders = computed(() => {
 	const token = localStorage.getItem('token');
