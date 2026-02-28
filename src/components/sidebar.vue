@@ -60,7 +60,7 @@ import { menuData } from '@/components/menu';
 
 
 // Assume userPermissions is fetched from a store or API
-const userPermissions = [ '0', '01','02','03','1', '11', '12', '13', '14','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42','5','6','7','8','9']; // Example permissions
+const userPermissions = ['admin', '0', '01','02','03','1', '11', '12', '13', '14','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42','5','6','7','8','9']; // Example permissions
 
 // Filter menuData based on user permissions
 const filteredMenuData = computed(() => {

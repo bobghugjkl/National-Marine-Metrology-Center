@@ -8,6 +8,7 @@ export const usePermissStore = defineStore('permiss', {
     state: () => {
         const defaultList: ObjectList = {
             admin: [
+                'admin',
                 '0',
                 '1',
                 '11',

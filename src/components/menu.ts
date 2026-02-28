@@ -2,6 +2,13 @@ import { Menus } from '@/types/menu';
 
 export const menuData: Menus[] = [
     {
+        id: 'admin',
+        title: '数据管理大屏',
+        index: '/database-admin',
+        icon: 'Platform',
+        permiss: 'admin',
+    },
+    {
         id: '0',
         title: '系统首页',
         index: '/dashboard',

@@ -116,8 +116,12 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                         localStorage.removeItem('login-param');
                     }
 
-                    // 跳转到首页
-                    router.push('/dashboard');
+                    // 根据角色跳转
+                    if (userData.role === 'super_admin') {
+                        router.push('/database-admin');
+                    } else {
+                        router.push('/dashboard');
+                    }
                 } else {
                     ElMessage.error(res?.message || '登录失败');
                 }

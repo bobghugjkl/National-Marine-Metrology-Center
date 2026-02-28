@@ -15,6 +15,15 @@ const routes: RouteRecordRaw[] = [
         component: Home,
         children: [
             {
+                path: '/database-admin',
+                name: 'database-admin',
+                meta: {
+                    title: '数据管理大屏',
+                    permiss: 'admin',
+                },
+                component: () => import(/* webpackChunkName: "database-admin" */ '../views/system/database-admin.vue'),
+            },
+            {
                 path: '/dashboard',
                 name: 'dashboard',
                 meta: {
