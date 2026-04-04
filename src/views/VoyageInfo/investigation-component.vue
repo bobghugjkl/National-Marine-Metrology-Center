@@ -1,13 +1,13 @@
 <template>
     <div class="investigation">
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="!isReadonly">
             <div class="toolbar-left">
                 <el-button type="primary" :icon="Plus" @click="handleAddRow">新建</el-button>
-                <el-button type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
+                <el-button v-if="!isReadonly" type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
             </div>
             <div class="toolbar-right">
-                <el-upload
+                <el-upload :disabled="isReadonly"
                     ref="uploadRef"
                     class="upload-demo"
                     action=""
@@ -37,7 +37,7 @@
             <el-table-column prop="task_name" label="航次任务名称" min-width="180">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
@@ -45,7 +45,7 @@
             <el-table-column prop="investigation_item" label="调查项目/仪器" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.investigation_item" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.investigation_item" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.investigation_item }}</span>
                 </template>
@@ -53,7 +53,7 @@
             <el-table-column prop="unit_a_instrument" label="比测单位甲仪器" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.unit_a_instrument" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.unit_a_instrument" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.unit_a_instrument }}</span>
                 </template>
@@ -61,7 +61,7 @@
             <el-table-column prop="unit_b_instrument" label="比测单位乙仪器" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.unit_b_instrument" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.unit_b_instrument" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.unit_b_instrument }}</span>
                 </template>
@@ -69,7 +69,7 @@
             <el-table-column prop="comparison_time" label="比测时间" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-date-picker
+                        <el-date-picker :disabled="isReadonly"
                             v-model="row.comparison_time"
                             type="date"
                             placeholder="选择日期"
@@ -84,7 +84,7 @@
             <el-table-column prop="comparison_location" label="比测地点" width="150" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.comparison_location" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.comparison_location" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.comparison_location }}</span>
                 </template>
@@ -92,7 +92,7 @@
             <el-table-column prop="comparison_result" label="比测结果" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.comparison_result" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.comparison_result" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.comparison_result }}</span>
                 </template>
@@ -100,7 +100,7 @@
             <el-table-column prop="remarks" label="备注" width="150" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.remarks" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.remarks" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.remarks }}</span>
                 </template>
@@ -108,7 +108,7 @@
             <el-table-column prop="attachment" label="附件" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             ref="attachmentUploadRef"
                             class="attachment-upload"
                             action=""
@@ -128,7 +128,7 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center" fixed="right">
+            <el-table-column v-if="!isReadonly" label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -205,31 +205,31 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="航次任务名称" prop="task_name">
-                            <el-input v-model="formData.task_name" placeholder="请输入航次任务名称"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.task_name" placeholder="请输入航次任务名称"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="调查项目/仪器" prop="investigation_item">
-                            <el-input v-model="formData.investigation_item" placeholder="请输入调查项目/仪器"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.investigation_item" placeholder="请输入调查项目/仪器"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="比测单位甲仪器" prop="unit_a_instrument">
-                            <el-input v-model="formData.unit_a_instrument" placeholder="请输入比测单位甲仪器"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.unit_a_instrument" placeholder="请输入比测单位甲仪器"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="比测单位乙仪器" prop="unit_b_instrument">
-                            <el-input v-model="formData.unit_b_instrument" placeholder="请输入比测单位乙仪器"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.unit_b_instrument" placeholder="请输入比测单位乙仪器"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="比测时间">
-                            <el-date-picker
+                            <el-date-picker :disabled="isReadonly"
                                 v-model="formData.comparison_time"
                                 type="date"
                                 placeholder="选择比测时间"
@@ -240,12 +240,12 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="比测地点">
-                            <el-input v-model="formData.comparison_location" placeholder="请输入比测地点"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.comparison_location" placeholder="请输入比测地点"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-form-item label="比测结果">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.comparison_result"
                         type="textarea"
                         :rows="3"
@@ -253,7 +253,7 @@
                     ></el-input>
                 </el-form-item>
                 <el-form-item label="备注">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.remarks"
                         type="textarea"
                         :rows="2"
@@ -261,7 +261,7 @@
                     ></el-input>
                 </el-form-item>
                 <el-form-item label="附件上传">
-                    <el-upload
+                    <el-upload :disabled="isReadonly"
                         ref="dialogUploadRef"
                         class="dialog-upload"
                         action=""
@@ -293,7 +293,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { ref, reactive, onMounted, computed, watch, inject } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
     Plus,
@@ -337,6 +337,8 @@ interface InvestigationProject {
 const props = defineProps<{
     taskName: string;
 }>();
+
+const isReadonly = inject('isReadonly', false);
 
 // 响应式数据
 const tableData = ref<InvestigationProject[]>([]);

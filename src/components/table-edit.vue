@@ -62,7 +62,7 @@ const { options, formData, edit, update } = defineProps({
 });
 
 
-const form = ref({ ...(edit ? formData : {}) });
+const form = ref({ ...formData });
 
 const rules: FormRules = options.list.map(item => {
 	if (item.required) {

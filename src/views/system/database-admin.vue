@@ -3,17 +3,18 @@
         <div class="header">
             <span class="title">数据库管理大屏 (超级管理员专属)</span>
             <div class="actions">
-                <span style="margin-right: 10px; color: #fff;">选择数据表：</span>
-                <el-select v-model="selectedTable" placeholder="请选择数据表" @change="handleTableChange" style="width: 250px;" :popper-append-to-body="false">
+                <span style="margin-right: 10px; color: #fff;">选择公司：</span>
+                <el-select v-model="selectedCompany" placeholder="请选择公司" @change="handleCompanyChange" style="width: 250px;" :popper-append-to-body="false" clearable>
+                    <el-option label="全部公司" value="all" />
                     <el-option
-                        v-for="item in tableList"
+                        v-for="item in companyList"
                         :key="item"
                         :label="item"
                         :value="item"
                     />
                 </el-select>
-                <el-button type="primary" style="margin-left: 20px;" @click="handleAdd" :disabled="!selectedTable">
-                    <el-icon><Plus /></el-icon> 新增数据
+                <el-button type="primary" style="margin-left: 20px;" @click="handleAdd">
+                    <el-icon><Plus /></el-icon> 新增用户
                 </el-button>
                 <el-button type="danger" style="margin-left: 20px;" @click="logout">
                     退出登录
@@ -27,18 +28,35 @@
                 </el-table-column>
                 <el-table-column label="操作" width="180" fixed="right" v-if="columns.length > 0">
                     <template #default="scope">
-                        <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-                        <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                        <el-button size="small" type="primary" @click="handleEdit(scope.row)" :disabled="scope.row.login_name === 'admin' || scope.row.role === 'super_admin'">编辑</el-button>
+                        <el-button size="small" type="danger" @click="handleDelete(scope.row)" :disabled="scope.row.login_name === 'admin' || scope.row.role === 'super_admin'">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </div>
 
         <!-- 编辑/新增弹窗 -->
-        <el-dialog :title="isEdit ? '编辑数据' : '新增数据'" v-model="dialogVisible" width="60%" destroy-on-close>
+        <el-dialog :title="isEdit ? '编辑用户' : '新增用户'" v-model="dialogVisible" width="60%" destroy-on-close>
             <el-form :model="formData" label-width="120px">
                 <el-form-item v-for="col in columns" :key="col.field" :label="col.field">
-                    <el-input v-model="formData[col.field]" :disabled="isEdit && col.field === primaryKey" />
+                    <template v-if="col.field === 'role'">
+                        <el-select 
+                            v-model="formData[col.field]" 
+                            placeholder="请选择或输入角色" 
+                            style="width: 100%" 
+                            filterable 
+                            allow-create
+                        >
+                            <el-option label="中心管理员" value="中心管理员" />
+                            <el-option label="项目管理员" value="项目管理员" />
+                            <el-option label="调查人员" value="调查人员" />
+                            <el-option label="超级管理员" value="super_admin" />
+                            <el-option label="普通用户" value="普通用户" />
+                        </el-select>
+                    </template>
+                    <template v-else>
+                        <el-input v-model="formData[col.field]" :disabled="isEdit && col.field === primaryKey" />
+                    </template>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -59,9 +77,11 @@ import { Plus } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 
 const router = useRouter();
-const tableList = ref<string[]>([]);
-const selectedTable = ref('');
+const selectedTable = ref('tb_user');
+const companyList = ref<string[]>([]);
+const selectedCompany = ref('all');
 const tableData = ref<any[]>([]);
+const allTableData = ref<any[]>([]); // 存储所有数据用于本地过滤
 const columns = ref<any[]>([]);
 const primaryKey = ref('');
 const loading = ref(false);
@@ -79,28 +99,28 @@ const logout = () => {
     router.push('/login');
 };
 
-// 获取所有表名
-const fetchTables = async () => {
-    try {
-        const res: any = await request.get('/db/tables');
-        console.log('fetchTables res:', res);
-        let targetData = res;
-        // 如果外层有 data，且包含 code 属性，说明是 Axios 没剥离的数据
-        if (res.data && 'code' in res.data) {
-            targetData = res.data;
+// 获取公司列表
+const extractCompanies = (data: any[]) => {
+    const companies = new Set<string>();
+    data.forEach(row => {
+        if (row.company && row.company.trim() !== '') {
+            companies.add(row.company);
         }
-        
-        if (targetData.code === 200) {
-            tableList.value = targetData.data;
-        }
-    } catch (error) {
-        console.error('获取表名失败', error);
+    });
+    companyList.value = Array.from(companies);
+};
+
+// 处理公司选择改变
+const handleCompanyChange = () => {
+    if (selectedCompany.value === 'all' || !selectedCompany.value) {
+        tableData.value = allTableData.value;
+    } else {
+        tableData.value = allTableData.value.filter(row => row.company === selectedCompany.value);
     }
 };
 
-// 获取选定表的数据
+// 获取 tb_user 表的数据
 const fetchTableData = async () => {
-    if (!selectedTable.value) return;
     loading.value = true;
     try {
         const res: any = await request.get(`/db/table/${selectedTable.value}`);
@@ -113,8 +133,11 @@ const fetchTableData = async () => {
         
         if (targetData.code === 200) {
             columns.value = targetData.data.columns;
-            tableData.value = targetData.data.rows;
+            allTableData.value = targetData.data.rows;
             primaryKey.value = targetData.data.primaryKey;
+            
+            extractCompanies(allTableData.value);
+            handleCompanyChange(); // 根据当前选择过滤
         } else {
             ElMessage.error(targetData.message || '获取数据失败');
         }
@@ -124,10 +147,6 @@ const fetchTableData = async () => {
     } finally {
         loading.value = false;
     }
-};
-
-const handleTableChange = () => {
-    fetchTableData();
 };
 
 const handleAdd = () => {
@@ -199,7 +218,7 @@ const submitForm = async () => {
 };
 
 onMounted(() => {
-    fetchTables();
+    fetchTableData(); // 直接获取 tb_user 数据
 });
 </script>
 
@@ -211,7 +230,7 @@ onMounted(() => {
     width: 100vw;
     height: 100vh;
     background: #f0f2f5;
-    z-index: 999; /* 调低一点，不能挡住 Element Plus 的弹出层 */
+    z-index: 999;
     display: flex;
     flex-direction: column;
 }
@@ -221,7 +240,7 @@ onMounted(() => {
     align-items: center;
     padding: 0 20px;
     height: 60px;
-    background: #242f42; /* 深色头部 */
+    background: #242f42;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .title {

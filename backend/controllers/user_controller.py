@@ -10,14 +10,25 @@ from utils.jwt_utils import token_required, hash_password, verify_password
 user_bp = Blueprint('user', __name__, url_prefix='/api')
 
 @user_bp.route('/users', methods=['GET'])
-def get_users():
-    """获取用户列表（支持搜索）"""
+@token_required
+def get_users(current_user_token):
+    """获取用户列表（支持搜索和角色权限过滤）"""
     try:
+        user_id = current_user_token['user_id']
+        current_user = User.query.get(user_id)
+        if not current_user:
+            return jsonify({'code': 404, 'message': '当前用户不存在'}), 404
+
         name = request.args.get('name', '')
+        query = User.query
         if name:
-            users = User.query.filter(User.name.like(f'%{name}%')).all()
-        else:
-            users = User.query.all()
+            query = query.filter(User.name.like(f'%{name}%'))
+            
+        # 权限过滤：项目管理员只能看到同公司的人，中心管理员可以看到所有人
+        if current_user.role == '项目管理员':
+            query = query.filter(User.company == current_user.company)
+            
+        users = query.all()
         
         user_list = [u.to_dict() for u in users]
         return jsonify({
@@ -36,14 +47,16 @@ def create_user():
     try:
         data = request.json
         new_user = User(
-            name=data.get('name'),
+            name=data.get('name') or data.get('username'),
             login_name=data.get('login_name'),
             password=data.get('password'),
             sex=data.get('sex'),
             role=data.get('role'),
             desc=data.get('desc'),
             permission=data.get('permission'),
-            department=data.get('department')
+            department=data.get('department'),
+            company=data.get('company'),
+            email=data.get('email')
         )
         db.session.add(new_user)
         db.session.commit()
@@ -122,7 +135,7 @@ def update_current_user_profile(current_user):
         data = request.json
         
         # 允许更新的字段
-        allowed_fields = ['sex', 'department', 'email', 'phone', 'signature']
+        allowed_fields = ['sex', 'department', 'email', 'phone', 'signature', 'company']
         for key, value in data.items():
             if key in allowed_fields and hasattr(user, key):
                 setattr(user, key, value)

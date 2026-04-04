@@ -5,7 +5,7 @@
             <TableCustom :columns="columns" :tableData="tableData" :total="page.total" :viewFunc="handleView"
                 :delFunc="handleDelete" :page-change="changePage" :editFunc="handleEdit">
                 <template #toolbarBtn>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+                    <el-button type="warning" :icon="CirclePlusFilled" @click="handleAdd">新增</el-button>
                 </template>
             </TableCustom>
 
@@ -51,6 +51,7 @@ let columns = ref([
     { prop: 'name', label: '用户名' },
     { prop: 'login_name', label: '登录名' },
     { prop: 'department', label: '部门' },
+    { prop: 'company', label: '公司' },
     { prop: 'role', label: '角色' },
     { prop: 'operator', label: '操作', width: 250 },
 ])
@@ -95,18 +96,49 @@ const isEdit = ref(false);
 const rowData = ref({});
 
 // 动态计算表单配置，编辑时禁用用户名
-const options = computed<FormOption>(() => ({
-    labelWidth: '100px',
-    span: 12,
-    list: [
-        { type: 'input', label: '用户名', prop: 'name', required: true, disabled: isEdit.value },
-        { type: 'input', label: '登录名', prop: 'login_name', required: true },
-        { type: 'input', label: '密码', prop: 'password', required: !isEdit.value },
-        { type: 'input', label: '性别', prop: 'sex' },
-        { type: 'input', label: '角色', prop: 'role', required: true },
-        { type: 'input', label: '部门', prop: 'department', required: true },
-    ]
-}))
+const options = computed<FormOption>(() => {
+    const userStr = localStorage.getItem('vuems_user');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
+    
+    // 角色下拉框选项
+    const roleOpts = [
+        { label: '项目管理员', value: '项目管理员' },
+        { label: '调查人员', value: '调查人员' },
+        { label: '普通用户', value: '普通用户' }
+    ];
+    
+    // 如果是超级管理员，可以赋予更多角色
+    if (currentUser && (currentUser.role === 'super_admin' || currentUser.role === '管理员')) {
+        roleOpts.push({ label: '中心管理员', value: '中心管理员' });
+        roleOpts.push({ label: '超级管理员', value: 'super_admin' });
+    }
+
+    return {
+        labelWidth: '100px',
+        span: 12,
+        list: [
+            { type: 'input', label: '用户名', prop: 'name', required: true, disabled: isEdit.value },
+            { type: 'input', label: '登录名', prop: 'login_name', required: true },
+            { type: 'input', label: '密码', prop: 'password', required: !isEdit.value },
+            { type: 'input', label: '性别', prop: 'sex' },
+            { type: 'select', label: '角色', prop: 'role', required: true, opts: roleOpts },
+            { type: 'input', label: '公司', prop: 'company', required: true, disabled: (currentUser && currentUser.role === '中心管理员') ? true : false },
+            { type: 'input', label: '部门', prop: 'department', required: true },
+        ]
+    };
+});
+
+const handleAdd = () => {
+    const userStr = localStorage.getItem('vuems_user');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
+    let defaultCompany = '';
+    if (currentUser && currentUser.role === '中心管理员') {
+        defaultCompany = currentUser.company || '';
+    }
+    rowData.value = { company: defaultCompany };
+    isEdit.value = false;
+    visible.value = true;
+};
 
 const handleEdit = (row: User) => {
     rowData.value = { ...row };
@@ -164,6 +196,14 @@ const handleView = (row: User) => {
         {
             prop: 'phone',
             label: '电话',
+        },
+        {
+            prop: 'department',
+            label: '部门',
+        },
+        {
+            prop: 'company',
+            label: '公司',
         },
         {
             prop: 'role',

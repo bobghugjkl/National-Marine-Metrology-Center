@@ -57,21 +57,21 @@ import { computed } from 'vue';
 import { useSidebarStore } from '../store/sidebar';
 import { useRoute } from 'vue-router';
 import { menuData } from '@/components/menu';
+import { usePermissStore } from '../store/permiss';
 
-
-// Assume userPermissions is fetched from a store or API
-const userPermissions = ['admin', '0', '01','02','03','1', '11', '12', '13', '14','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42','5','6','7','8','9']; // Example permissions
+const permiss = usePermissStore();
 
 // Filter menuData based on user permissions
 const filteredMenuData = computed(() => {
   const filterMenu = (items: any[], permissions: string[]): any[] => {
     return items
       .filter((item) => {
-        // Include item if its ID is in permissions or it has permitted children
-        if (permissions.includes(item.id)) return true;
+        const itemPermiss = item.permiss || item.id;
+        // Include item if its ID/permiss is in permissions or it has permitted children
+        if (permissions.includes(itemPermiss)) return true;
         if (item.children) {
           const hasPermittedChildren = item.children.some((child: any) =>
-            permissions.includes(child.id) || (child.children && child.children.some((subChild: any) => permissions.includes(subChild.id)))
+            permissions.includes(child.permiss || child.id) || (child.children && child.children.some((subChild: any) => permissions.includes(subChild.permiss || subChild.id)))
           );
           return hasPermittedChildren;
         }
@@ -89,7 +89,7 @@ const filteredMenuData = computed(() => {
       });
   };
 
-  return filterMenu(menuData, userPermissions);
+  return filterMenu(menuData, permiss.key);
 });
 
 const route = useRoute();

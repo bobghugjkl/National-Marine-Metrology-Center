@@ -26,6 +26,15 @@
                         </template>
                     </el-input>
                 </el-form-item>
+                <el-form-item prop="company">
+                    <el-input v-model="param.company" placeholder="公司名称">
+                        <template #prepend>
+                            <el-icon>
+                                <OfficeBuilding />
+                            </el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
                 <el-form-item prop="password">
                     <el-input
                         type="password"
@@ -55,13 +64,14 @@ import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { Register } from '@/types/user';
 import { registerUser } from '@/api';
-import { User ,Right} from '@element-plus/icons-vue';
+import { User, Lock, Message, OfficeBuilding, Right } from '@element-plus/icons-vue';
 
 const router = useRouter();
-const param = reactive<Register>({
+const param = reactive({
     username: '',
     password: '',
     email: '',
+    company: '',
 });
 
 const rules: FormRules = {
@@ -85,6 +95,7 @@ const rules: FormRules = {
         }
     ],
     email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
+    company: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
 };
 
 const register = ref<FormInstance>();
@@ -98,7 +109,9 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     username: param.username,
                     password: param.password,
                     login_name: param.username,  // 使用用户名作为登录名
-                    department: '未分配'
+                    department: '未分配',
+                    company: param.company,
+                    email: param.email
                 });
 
                 console.log('注册响应:', res);

@@ -33,6 +33,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "dashboard" */ '../views/dashboard.vue'),
             },
             {
+                path: '/center-admin-dashboard',
+                name: 'center-admin-dashboard',
+                meta: {
+                    title: '中心管理员首页',
+                    permiss: 'center_admin_home',
+                },
+                component: () => import(/* webpackChunkName: "center-admin-dashboard" */ '../views/system/center-admin-dashboard.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {
@@ -46,7 +55,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'task-manage',
                 meta: {
                     title: '任务管理',
-                    permiss: '11',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "task-manage" */ '../views/VoyageInfo/task-manage.vue'),
             },
@@ -64,7 +73,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'task-detail',
                 meta: {
                     title: (route) => route.params.task_name || '任务详情',
-                    permiss: '12',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "task-detail" */ '../views/VoyageInfo/task-detail.vue'),
             },
@@ -82,7 +91,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'inspection-record',
                 meta: {
                     title: '检查记录详情',
-                    permiss: '12',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "inspection-record" */ '../views/preVoyageInspection/inspection-record.vue'),
             },
@@ -145,7 +154,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'personnel-qualifications',
                 meta: {
                     title: '外业调查人员资质',
-                    permiss: '12',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "personnel-qualifications" */ '../views/preVoyageInspection/personnel-qualifications-list.vue'),
             },
@@ -154,7 +163,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'equipment-list',
                 meta: {
                     title: '仪器设备（工作计量器具）',
-                    permiss: '12',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "equipment-list" */ '../views/preVoyageInspection/equipment-list.vue'),
             },
@@ -163,7 +172,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'investigation-list',
                 meta: {
                     title: '外业调查项目/仪器比测统计表',
-                    permiss: '12',
+                    permiss: 'task_manage',
                 },
                 component: () => import(/* webpackChunkName: "investigation-list" */ '../views/preVoyageInspection/investigation-list.vue'),
             },

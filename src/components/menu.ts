@@ -9,13 +9,21 @@ export const menuData: Menus[] = [
         permiss: 'admin',
     },
     {
-        id: '0',
+        id: 'center_admin_home',
+        title: '中心管理员主页',
+        index: '/center-admin-dashboard',
+        icon: 'Odometer',
+        permiss: 'center_admin_home',
+    },
+    {
+        id: 'dashboard',
         title: '系统首页',
         index: '/dashboard',
         icon: 'Odometer',
+        permiss: 'dashboard',
     },
     {
-        id: '0', 
+        id: 'task_manage', 
         title: '任务管理',
         index: '/task-manage', 
         icon: 'Document', 
@@ -177,7 +185,7 @@ export const menuData: Menus[] = [
             {
                 id: '11',
                 pid: '1',
-                index: '/user-profile',
+                index: '/system-user',
                 title: '用户管理',
             },
             {

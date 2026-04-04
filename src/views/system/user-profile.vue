@@ -62,6 +62,11 @@
                             <el-input v-model="userInfo.phone" />
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="公司" prop="company">
+                            <el-input v-model="userInfo.company" />
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 
                 <el-form-item>
@@ -152,6 +157,7 @@ const userInfo = reactive({
     login_name: '',
     sex: '',
     department: '',
+    company: '',
     role: '',
     email: '',
     phone: '',
@@ -179,6 +185,7 @@ const rules = {
     login_name: [{ required: true, message: '请输入登录名', trigger: 'blur' }],
     sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
     department: [{ required: true, message: '请输入部门', trigger: 'blur' }],
+    company: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
     email: [
         { required: true, message: '请输入邮箱', trigger: 'blur' },
         { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
@@ -221,6 +228,7 @@ const getCurrentUserInfo = async () => {
                 login_name: res.data.login_name || '',
                 sex: res.data.sex || '',
                 department: res.data.department || '',
+                company: res.data.company || '',
                 role: res.data.role || '',
                 email: res.data.email || '',
                 phone: res.data.phone || '',
@@ -253,6 +261,7 @@ const updateProfile = async () => {
         const updateData = {
             sex: userInfo.sex,
             department: userInfo.department,
+            company: userInfo.company,
             email: userInfo.email,
             phone: userInfo.phone,
             signature: userInfo.signature

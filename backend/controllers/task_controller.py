@@ -3,7 +3,7 @@
 """
 from flask import Blueprint, request, jsonify
 from urllib.parse import unquote
-from models import TaskInfo, PreVoyageInspection
+from models import TaskInfo, PreVoyageInspection, User
 from config.database import db
 from utils.jwt_utils import token_required
 
@@ -21,9 +21,20 @@ def get_tasks(current_user):
         # 查询参数
         task_name = request.args.get('task_name', type=str)
 
-        # 基础查询（管理员可看全部，否则仅看本人）
-        if user_role in ['super_admin', '管理员']:
+        # 基础查询（管理员、中心管理员可看全部，项目管理员看本公司全部，否则仅看本人）
+        if user_role in ['super_admin', '管理员', '中心管理员']:
             query = TaskInfo.query
+        elif user_role == '项目管理员':
+            # 获取当前用户的公司信息
+            curr_user_obj = User.query.get(user_id)
+            if curr_user_obj and curr_user_obj.company:
+                # 查询该公司下的所有用户的 user_id
+                company_users = User.query.filter_by(company=curr_user_obj.company).all()
+                company_user_ids = [u.id for u in company_users]
+                query = TaskInfo.query.filter(TaskInfo.user_id.in_(company_user_ids))
+            else:
+                # 如果没有公司信息，退级为只看本人
+                query = TaskInfo.query.filter_by(user_id=user_id)
         else:
             query = TaskInfo.query.filter_by(user_id=user_id)
 
@@ -121,8 +132,17 @@ def update_task(current_user, task_name):
         user_id = current_user['user_id']
         user_role = current_user['role']
         
-        # 验证权限：只能修改自己的任务（管理员除外）
-        if task.user_id != user_id and user_role not in ['super_admin', '管理员']:
+        # 验证权限：只能修改自己的任务（管理员可改所有，中心/项目管理员可改本公司成员的任务）
+        can_edit = False
+        if task.user_id == user_id or user_role in ['super_admin', '管理员']:
+            can_edit = True
+        elif user_role in ['中心管理员', '项目管理员']:
+            curr_user_obj = User.query.get(user_id)
+            task_owner_obj = User.query.get(task.user_id)
+            if curr_user_obj and task_owner_obj and curr_user_obj.company == task_owner_obj.company:
+                can_edit = True
+                
+        if not can_edit:
             return jsonify({'code': 403, 'message': '无权修改其他用户的任务'}), 403
         
         data = request.json
@@ -150,8 +170,17 @@ def delete_task(current_user, task_name):
         user_id = current_user['user_id']
         user_role = current_user['role']
         
-        # 验证权限：只能删除自己的任务（管理员除外）
-        if task.user_id != user_id and user_role not in ['super_admin', '管理员']:
+        # 验证权限：只能删除自己的任务（管理员可删所有，中心/项目管理员可删本公司成员的任务）
+        can_delete = False
+        if task.user_id == user_id or user_role in ['super_admin', '管理员']:
+            can_delete = True
+        elif user_role in ['中心管理员', '项目管理员']:
+            curr_user_obj = User.query.get(user_id)
+            task_owner_obj = User.query.get(task.user_id)
+            if curr_user_obj and task_owner_obj and curr_user_obj.company == task_owner_obj.company:
+                can_delete = True
+                
+        if not can_delete:
             return jsonify({'code': 403, 'message': '无权删除其他用户的任务'}), 403
         
         # 删除对应的检查记录

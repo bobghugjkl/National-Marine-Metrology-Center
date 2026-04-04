@@ -1,13 +1,13 @@
 <template>
     <div class="post-inspection">
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="!isReadonly">
             <div class="toolbar-left">
                 <el-button type="primary" :icon="Plus" @click="handleAddRow">新建</el-button>
-                <el-button type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
+                <el-button v-if="!isReadonly" type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
             </div>
             <div class="toolbar-right">
-                <el-upload
+                <el-upload :disabled="isReadonly"
                     ref="uploadRef"
                     class="upload-demo"
                     action=""
@@ -37,7 +37,7 @@
             <el-table-column prop="task_name" label="航次任务名称" min-width="180">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
@@ -45,7 +45,7 @@
             <el-table-column prop="inspection_date" label="检查日期" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-date-picker
+                        <el-date-picker :disabled="isReadonly"
                             v-model="row.inspection_date"
                             type="date"
                             placeholder="选择日期"
@@ -60,7 +60,7 @@
             <el-table-column prop="inspection_content" label="检查内容" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.inspection_content" type="textarea" :rows="2" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.inspection_content" type="textarea" :rows="2" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.inspection_content }}</span>
                 </template>
@@ -68,7 +68,7 @@
             <el-table-column prop="existing_problems" label="存在问题" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.existing_problems" type="textarea" :rows="2" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.existing_problems" type="textarea" :rows="2" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.existing_problems }}</span>
                 </template>
@@ -76,7 +76,7 @@
             <el-table-column prop="rectification_status" label="整改情况" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.rectification_status" type="textarea" :rows="2" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.rectification_status" type="textarea" :rows="2" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.rectification_status }}</span>
                 </template>
@@ -84,7 +84,7 @@
             <el-table-column prop="form_filling_time" label="填表时间" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-date-picker
+                        <el-date-picker :disabled="isReadonly"
                             v-model="row.form_filling_time"
                             type="date"
                             placeholder="选择日期"
@@ -99,7 +99,7 @@
             <el-table-column prop="attachment" label="附件" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             ref="attachmentUploadRef"
                             class="attachment-upload"
                             action=""
@@ -119,7 +119,7 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center" fixed="right">
+            <el-table-column v-if="!isReadonly" label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -213,12 +213,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="航次任务名称" prop="task_name">
-                            <el-input v-model="formData.task_name" placeholder="请输入航次任务名称" />
+                            <el-input :disabled="isReadonly" v-model="formData.task_name" placeholder="请输入航次任务名称" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="检查日期" prop="inspection_date">
-                            <el-date-picker
+                            <el-date-picker :disabled="isReadonly"
                                 v-model="formData.inspection_date"
                                 type="date"
                                 placeholder="选择检查日期"
@@ -233,7 +233,7 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="填表时间" prop="form_filling_time">
-                            <el-date-picker
+                            <el-date-picker :disabled="isReadonly"
                                 v-model="formData.form_filling_time"
                                 type="date"
                                 placeholder="选择填表时间"
@@ -246,7 +246,7 @@
                 </el-row>
                 
                 <el-form-item label="检查内容" prop="inspection_content">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.inspection_content"
                         type="textarea"
                         :rows="4"
@@ -255,7 +255,7 @@
                 </el-form-item>
                 
                 <el-form-item label="存在问题" prop="existing_problems">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.existing_problems"
                         type="textarea"
                         :rows="4"
@@ -264,7 +264,7 @@
                 </el-form-item>
                 
                 <el-form-item label="整改情况" prop="rectification_status">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.rectification_status"
                         type="textarea"
                         :rows="4"
@@ -275,7 +275,7 @@
                 <!-- 附件上传 -->
                 <el-form-item label="附件上传">
                     <div class="dialog-upload">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             :auto-upload="false"
                             :on-change="handleDialogAttachmentUpload"
                             :before-upload="beforeUpload"
@@ -290,7 +290,7 @@
                         <div v-if="formData.attachmentList && formData.attachmentList.length > 0" class="attachment-list">
                             <div v-for="(attachment, index) in formData.attachmentList" :key="index" class="attachment-item">
                                 <span>{{ attachment.filename }}</span>
-                                <el-button type="danger" size="small" @click="handleDialogAttachmentRemove(index)">
+                                <el-button v-if="!isReadonly" type="danger" size="small" @click="handleDialogAttachmentRemove(index)">
                                     删除
                                 </el-button>
                             </div>
@@ -312,7 +312,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, inject } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Upload, Download, Document, Edit, Check, Close } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
@@ -359,6 +359,8 @@ const formData = reactive({
   form_filling_time: '',
   attachmentList: []
 })
+
+const isReadonly = inject('isReadonly', false);
 
 // 表单验证规则
 const formRules = {

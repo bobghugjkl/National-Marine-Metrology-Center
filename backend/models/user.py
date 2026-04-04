@@ -19,6 +19,7 @@ class User(db.Model):
     email = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     signature = db.Column(db.Text)  # 手写签名数据（base64格式）
+    company = db.Column(db.String(255)) # 公司名称
 
     def to_dict(self):
         """转换为字典"""
@@ -34,5 +35,6 @@ class User(db.Model):
             'department': self.department,
             'email': self.email,
             'phone': self.phone,
-            'signature': self.signature
+            'signature': self.signature,
+            'company': self.company
         }

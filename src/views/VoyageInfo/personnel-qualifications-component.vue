@@ -1,13 +1,13 @@
 <template>
     <div class="personnel-qualifications">
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="!isReadonly">
             <div class="toolbar-left">
                 <el-button type="primary" :icon="Plus" @click="handleAddRow">新建</el-button>
-                <el-button type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
+                <el-button v-if="!isReadonly" type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
             </div>
             <div class="toolbar-right">
-                <el-upload
+                <el-upload :disabled="isReadonly"
                     ref="uploadRef"
                     class="upload-demo"
                     action=""
@@ -37,7 +37,7 @@
             <el-table-column prop="task_name" label="航次任务名称" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
@@ -45,7 +45,7 @@
             <el-table-column prop="name" label="姓名"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.name }}</span>
                 </template>
@@ -53,7 +53,7 @@
             <el-table-column prop="gender" label="性别" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-select v-model="row.gender" size="small" @click.stop>
+                        <el-select :disabled="isReadonly" v-model="row.gender" size="small" @click.stop>
                             <el-option label="男" value="男"></el-option>
                             <el-option label="女" value="女"></el-option>
                         </el-select>
@@ -64,7 +64,7 @@
             <el-table-column prop="birth_date" label="出生年月"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-date-picker
+                        <el-date-picker :disabled="isReadonly"
                             v-model="row.birth_date"
                             type="month"
                             placeholder="选择月份"
@@ -79,7 +79,7 @@
             <el-table-column prop="title" label="职称"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.title" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.title" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.title }}</span>
                 </template>
@@ -87,7 +87,7 @@
             <el-table-column prop="work_unit" label="工作单位" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.work_unit" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.work_unit" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.work_unit }}</span>
                 </template>
@@ -95,7 +95,7 @@
             <el-table-column prop="major" label="从事专业"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.major" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.major" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.major }}</span>
                 </template>
@@ -103,7 +103,7 @@
             <el-table-column prop="instruments" label="本航次操作仪器" >
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.instruments" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.instruments" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.instruments }}</span>
                 </template>
@@ -111,7 +111,7 @@
             <el-table-column prop="training" label="培训情况"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.training" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.training" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.training }}</span>
                 </template>
@@ -119,7 +119,7 @@
             <el-table-column prop="remark" label="备注"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.remark" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.remark" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.remark }}</span>
                 </template>
@@ -127,7 +127,7 @@
             <el-table-column prop="attachment" label="附件"  align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             ref="attachmentUploadRef"
                             class="attachment-upload"
                             action=""
@@ -147,7 +147,7 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center" fixed="right">
+            <el-table-column v-if="!isReadonly" label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -209,12 +209,12 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="姓名" prop="name">
-                            <el-input v-model="formData.name" placeholder="请输入姓名"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.name" placeholder="请输入姓名"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="性别" prop="gender">
-                            <el-select v-model="formData.gender" placeholder="请选择性别" style="width: 100%">
+                            <el-select :disabled="isReadonly" v-model="formData.gender" placeholder="请选择性别" style="width: 100%">
                                 <el-option label="男" value="男"></el-option>
                                 <el-option label="女" value="女"></el-option>
                             </el-select>
@@ -222,7 +222,7 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="出生年月" prop="birth_date">
-                            <el-date-picker
+                            <el-date-picker :disabled="isReadonly"
                                 v-model="formData.birth_date"
                                 type="month"
                                 placeholder="选择出生年月"
@@ -233,39 +233,39 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="职称" prop="title">
-                            <el-input v-model="formData.title" placeholder="请输入职称"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.title" placeholder="请输入职称"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="工作单位" prop="work_unit">
-                            <el-input v-model="formData.work_unit" placeholder="请输入工作单位"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.work_unit" placeholder="请输入工作单位"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="从事专业" prop="major">
-                            <el-input v-model="formData.major" placeholder="请输入从事专业"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.major" placeholder="请输入从事专业"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="本航次操作仪器" prop="instruments">
-                            <el-input v-model="formData.instruments" placeholder="请输入操作仪器"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.instruments" placeholder="请输入操作仪器"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="培训情况" prop="training">
-                            <el-input v-model="formData.training" placeholder="请输入培训情况"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.training" placeholder="请输入培训情况"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="备注" prop="remark">
-                            <el-input v-model="formData.remark" placeholder="请输入备注"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.remark" placeholder="请输入备注"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row>
                     <el-col :span="24">
                         <el-form-item label="附件上传">
-                            <el-upload
+                            <el-upload :disabled="isReadonly"
                                 ref="attachmentUploadRef"
                                 class="upload-demo"
                                 action=""
@@ -295,7 +295,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, defineProps, watch } from 'vue';
+import { ref, reactive, onMounted, defineProps, watch, inject } from 'vue';
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import { Plus, Delete, Upload, Download, Edit, Document, Check, Close } from '@element-plus/icons-vue';
 import * as XLSX from 'xlsx';
@@ -314,6 +314,8 @@ const props = defineProps({
         required: true
     }
 });
+
+const isReadonly = inject('isReadonly', false);
 
 interface Personnel {
     id?: number;

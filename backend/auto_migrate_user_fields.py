@@ -17,7 +17,8 @@ def check_and_add_user_fields():
         required_fields = [
             {'name': 'email', 'type': 'VARCHAR(100)', 'comment': '邮箱'},
             {'name': 'phone', 'type': 'VARCHAR(20)', 'comment': '电话'},
-            {'name': 'signature', 'type': 'TEXT', 'comment': '手写签名'}
+            {'name': 'signature', 'type': 'TEXT', 'comment': '手写签名'},
+            {'name': 'company', 'type': 'VARCHAR(255)', 'comment': '公司名称'}
         ]
         
         added_fields = []

@@ -1,13 +1,13 @@
 <template>
     <div class="procedure-execution">
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="!isReadonly">
             <div class="toolbar-left">
                 <el-button type="primary" :icon="Plus" @click="handleAddRow">新建</el-button>
-                <el-button type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
+                <el-button v-if="!isReadonly" type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
             </div>
             <div class="toolbar-right">
-                <el-upload
+                <el-upload :disabled="isReadonly"
                     ref="uploadRef"
                     class="upload-demo"
                     action=""
@@ -37,7 +37,7 @@
             <el-table-column prop="task_name" label="航次任务名称" min-width="180">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
@@ -45,7 +45,7 @@
             <el-table-column prop="investigation_item_instrument" label="调查项目/仪器" width="200" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.investigation_item_instrument" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.investigation_item_instrument" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.investigation_item_instrument }}</span>
                 </template>
@@ -53,7 +53,7 @@
             <el-table-column prop="task_undertaking_unit" label="任务承担单位" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_undertaking_unit" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_undertaking_unit" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.task_undertaking_unit }}</span>
                 </template>
@@ -61,7 +61,7 @@
             <el-table-column prop="has_operating_procedures" label="是否具有操作规程" width="150" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-select v-model="row.has_operating_procedures" size="small" @click.stop>
+                        <el-select :disabled="isReadonly" v-model="row.has_operating_procedures" size="small" @click.stop>
                             <el-option label="是" value="是"></el-option>
                             <el-option label="否" value="否"></el-option>
                         </el-select>
@@ -72,7 +72,7 @@
             <el-table-column prop="operating_procedure_name" label="操作规程名称" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.operating_procedure_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.operating_procedure_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.operating_procedure_name }}</span>
                 </template>
@@ -80,7 +80,7 @@
             <el-table-column prop="remarks" label="备注" min-width="150">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.remarks" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.remarks" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.remarks }}</span>
                 </template>
@@ -88,7 +88,7 @@
             <el-table-column prop="attachment" label="附件" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             ref="attachmentUploadRef"
                             class="attachment-upload"
                             action=""
@@ -108,7 +108,7 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center" fixed="right">
+            <el-table-column v-if="!isReadonly" label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -202,12 +202,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="航次任务名称" prop="task_name">
-                            <el-input v-model="formData.task_name" placeholder="请输入航次任务名称" />
+                            <el-input :disabled="isReadonly" v-model="formData.task_name" placeholder="请输入航次任务名称" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="调查项目/仪器" prop="investigation_item_instrument">
-                            <el-input v-model="formData.investigation_item_instrument" placeholder="请输入调查项目/仪器" />
+                            <el-input :disabled="isReadonly" v-model="formData.investigation_item_instrument" placeholder="请输入调查项目/仪器" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -215,12 +215,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="任务承担单位" prop="task_undertaking_unit">
-                            <el-input v-model="formData.task_undertaking_unit" placeholder="请输入任务承担单位" />
+                            <el-input :disabled="isReadonly" v-model="formData.task_undertaking_unit" placeholder="请输入任务承担单位" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="是否具有操作规程" prop="has_operating_procedures">
-                            <el-select v-model="formData.has_operating_procedures" placeholder="请选择" style="width: 100%;">
+                            <el-select :disabled="isReadonly" v-model="formData.has_operating_procedures" placeholder="请选择" style="width: 100%;">
                                 <el-option label="是" value="是"></el-option>
                                 <el-option label="否" value="否"></el-option>
                             </el-select>
@@ -229,11 +229,11 @@
                 </el-row>
                 
                 <el-form-item label="操作规程名称" prop="operating_procedure_name">
-                    <el-input v-model="formData.operating_procedure_name" placeholder="请输入操作规程名称" />
+                    <el-input :disabled="isReadonly" v-model="formData.operating_procedure_name" placeholder="请输入操作规程名称" />
                 </el-form-item>
                 
                 <el-form-item label="备注" prop="remarks">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.remarks"
                         type="textarea"
                         :rows="3"
@@ -244,7 +244,7 @@
                 <!-- 附件上传 -->
                 <el-form-item label="附件上传">
                     <div class="dialog-upload">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             :auto-upload="false"
                             :on-change="handleDialogAttachmentUpload"
                             :before-upload="beforeUpload"
@@ -259,7 +259,7 @@
                         <div v-if="formData.attachmentList && formData.attachmentList.length > 0" class="attachment-list">
                             <div v-for="(attachment, index) in formData.attachmentList" :key="index" class="attachment-item">
                                 <span>{{ attachment.filename }}</span>
-                                <el-button type="danger" size="small" @click="handleDialogAttachmentRemove(index)">
+                                <el-button v-if="!isReadonly" type="danger" size="small" @click="handleDialogAttachmentRemove(index)">
                                     删除
                                 </el-button>
                             </div>
@@ -281,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, inject } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Upload, Download, Document, Edit, Check, Close } from '@element-plus/icons-vue'
 import * as XLSX from 'xlsx'
@@ -328,6 +328,8 @@ const formData = reactive({
   remarks: '',
   attachmentList: []
 })
+
+const isReadonly = inject('isReadonly', false);
 
 // 表单验证规则
 const formRules = {

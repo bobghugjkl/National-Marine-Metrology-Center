@@ -15,12 +15,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="被检查承担单位">
-                            <el-input v-model="formData.inspected_unit" placeholder="请输入被检查承担单位"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.inspected_unit" placeholder="请输入被检查承担单位"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="被检查参加单位">
-                            <el-input v-model="formData.participating_unit" placeholder="请输入被检查参加单位"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.participating_unit" placeholder="请输入被检查参加单位"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
@@ -30,27 +30,27 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="航次任务编号">
-                            <el-input v-model="formData.task_code" placeholder="请输入航次任务编号"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.task_code" placeholder="请输入航次任务编号"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="航次首席科学家">
-                            <el-input v-model="formData.chief_scientist" placeholder="请输入航次首席科学家"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.chief_scientist" placeholder="请输入航次首席科学家"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="检查日期">
-                            <el-input v-model="formData.inspection_date" placeholder="例如：2025/10/3"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.inspection_date" placeholder="例如：2025/10/3"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="随船质量监督员">
-                            <el-input v-model="formData.onboard_supervisor" placeholder="请输入随船质量监督员"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.onboard_supervisor" placeholder="请输入随船质量监督员"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="24">
                         <el-form-item label="被检查单位(部门)主要参与人员">
-                            <el-input v-model="formData.inspected_unit_personnel" placeholder="请输入被检查单位(部门)主要参与人员"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.inspected_unit_personnel" placeholder="请输入被检查单位(部门)主要参与人员"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -72,7 +72,7 @@
                         <el-row :gutter="20">
                             <el-col :span="12">
                                 <el-form-item :label="`检查情况${i}`">
-                                    <el-input 
+                                    <el-input :disabled="isReadonly" 
                                         v-model="formData[`check_${i}`]" 
                                         type="textarea" 
                                         :rows="2"
@@ -82,7 +82,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <el-form-item :label="`存在问题${i}`">
-                                    <el-input 
+                                    <el-input :disabled="isReadonly" 
                                         v-model="formData[`check_${i}_problem`]" 
                                         type="textarea" 
                                         :rows="2"
@@ -99,12 +99,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="组长签字">
-                            <el-input v-model="formData.team_leader_sign" placeholder="请输入组长签名"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.team_leader_sign" placeholder="请输入组长签名"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="任务负责人签字">
-                            <el-input v-model="formData.task_leader_sign" placeholder="请输入任务负责人签名"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.task_leader_sign" placeholder="请输入任务负责人签名"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -114,7 +114,7 @@
                 <el-row :gutter="20">
                     <el-col :span="24">
                         <el-form-item label="附件上传">
-                            <el-upload
+                            <el-upload :disabled="isReadonly"
                                 ref="uploadRef"
                                 :auto-upload="false"
                                 :on-change="handleAttachmentUpload"
@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, defineProps, defineEmits, watch } from 'vue';
+import { ref, reactive, onMounted, defineProps, defineEmits, watch, inject } from 'vue';
 import { ElMessage } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';
 import { fetchOnboardInspection, updateOnboardInspection, uploadOnboardInspectionAttachment } from '@/api/onboard-inspection';
@@ -158,6 +158,8 @@ const props = defineProps({
         required: true
     }
 });
+
+const isReadonly = inject('isReadonly', false);
 
 const emit = defineEmits(['save-success', 'cancel']);
 
@@ -292,21 +294,25 @@ const getData = async () => {
 
         if (res.code === 200) {
             console.log('获取数据成功:', res.data);
-            Object.assign(formData, res.data);
-            
-            // 处理附件列表
-            if (res.data.attachments) {
-                try {
-                    const attachments = JSON.parse(res.data.attachments);
-                    attachmentList.value = attachments.map((att: any) => ({
-                        name: att.name,
-                        url: att.url,
-                        size: att.size
-                    }));
-                } catch (e) {
-                    console.warn('解析附件数据失败:', e);
-                    attachmentList.value = [];
+            if (res.data) {
+                Object.assign(formData, res.data);
+                
+                // 处理附件列表
+                if (res.data.attachments) {
+                    try {
+                        const attachments = JSON.parse(res.data.attachments);
+                        attachmentList.value = attachments.map((att: any) => ({
+                            name: att.name,
+                            url: att.url,
+                            size: att.size
+                        }));
+                    } catch (e) {
+                        console.warn('解析附件数据失败:', e);
+                        attachmentList.value = [];
+                    }
                 }
+            } else {
+                console.warn('获取成功但无数据:', res);
             }
         } else {
             console.error('API返回错误:', res);

@@ -1,13 +1,13 @@
 <template>
     <div class="equipment">
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="!isReadonly">
             <div class="toolbar-left">
                 <el-button type="primary" :icon="Plus" @click="handleAddRow">新建</el-button>
-                <el-button type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
+                <el-button v-if="!isReadonly" type="danger" :icon="Delete" @click="handleDeleteBatch" :disabled="selectedRows.length === 0">删除</el-button>
             </div>
             <div class="toolbar-right">
-                <el-upload
+                <el-upload :disabled="isReadonly"
                     ref="uploadRef"
                     class="upload-demo"
                     action=""
@@ -37,7 +37,7 @@
             <el-table-column prop="task_name" label="航次任务名称" min-width="180">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.task_name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.task_name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else class="task-name">{{ row.task_name }}</span>
                 </template>
@@ -45,7 +45,7 @@
             <el-table-column prop="name" label="仪器（标准物质）名称" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.name" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.name" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.name }}</span>
                 </template>
@@ -53,7 +53,7 @@
             <el-table-column prop="category" label="类别" width="100" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-select v-model="row.category" size="small" @click.stop>
+                        <el-select :disabled="isReadonly" v-model="row.category" size="small" @click.stop>
                             <el-option label="仪器" value="仪器"></el-option>
                             <el-option label="标准物质" value="标准物质"></el-option>
                             <el-option label="计量器具" value="计量器具"></el-option>
@@ -65,7 +65,7 @@
             <el-table-column prop="number" label="编号" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.number" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.number" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.number }}</span>
                 </template>
@@ -73,7 +73,7 @@
             <el-table-column prop="model" label="型号" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.model" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.model" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.model }}</span>
                 </template>
@@ -81,7 +81,7 @@
             <el-table-column prop="traceability_method" label="量值溯源方式" width="150" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.traceability_method" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.traceability_method" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.traceability_method }}</span>
                 </template>
@@ -89,7 +89,7 @@
             <el-table-column prop="calibration_date" label="检定/校准日期" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-date-picker
+                        <el-date-picker :disabled="isReadonly"
                             v-model="row.calibration_date"
                             type="date"
                             placeholder="选择日期"
@@ -104,7 +104,7 @@
             <el-table-column prop="certificate_number" label="证书编号" width="120" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.certificate_number" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.certificate_number" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.certificate_number }}</span>
                 </template>
@@ -112,7 +112,7 @@
             <el-table-column prop="validity_period" label="有效期" width="100" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.validity_period" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.validity_period" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.validity_period }}</span>
                 </template>
@@ -120,7 +120,7 @@
             <el-table-column prop="calibration_organization" label="检定/校准机构" min-width="200">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.calibration_organization" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.calibration_organization" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.calibration_organization }}</span>
                 </template>
@@ -128,7 +128,7 @@
             <el-table-column prop="remarks" label="备注" width="150" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-input v-model="row.remarks" size="small" @click.stop></el-input>
+                        <el-input :disabled="isReadonly" v-model="row.remarks" size="small" @click.stop></el-input>
                     </template>
                     <span v-else>{{ row.remarks }}</span>
                 </template>
@@ -136,7 +136,7 @@
             <el-table-column prop="attachment" label="附件" width="180" align="center">
                 <template #default="{ row }">
                     <template v-if="row.isEditing">
-                        <el-upload
+                        <el-upload :disabled="isReadonly"
                             ref="attachmentUploadRef"
                             class="attachment-upload"
                             action=""
@@ -156,7 +156,7 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" align="center" fixed="right">
+            <el-table-column v-if="!isReadonly" label="操作" width="150" align="center" fixed="right">
                 <template #default="{ row }">
                     <div class="operation-buttons">
                         <el-button
@@ -233,12 +233,12 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="航次任务名称" prop="task_name">
-                            <el-input v-model="formData.task_name" placeholder="请输入航次任务名称"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.task_name" placeholder="请输入航次任务名称"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="类别" prop="category">
-                            <el-select v-model="formData.category" placeholder="请选择类别">
+                            <el-select :disabled="isReadonly" v-model="formData.category" placeholder="请选择类别">
                                 <el-option label="仪器" value="仪器"></el-option>
                                 <el-option label="标准物质" value="标准物质"></el-option>
                                 <el-option label="计量器具" value="计量器具"></el-option>
@@ -249,31 +249,31 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="仪器名称" prop="name">
-                            <el-input v-model="formData.name" placeholder="请输入仪器（标准物质）名称"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.name" placeholder="请输入仪器（标准物质）名称"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="编号" prop="number">
-                            <el-input v-model="formData.number" placeholder="请输入编号"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.number" placeholder="请输入编号"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="型号" prop="model">
-                            <el-input v-model="formData.model" placeholder="请输入型号"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.model" placeholder="请输入型号"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="量值溯源方式">
-                            <el-input v-model="formData.traceability_method" placeholder="请输入量值溯源方式"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.traceability_method" placeholder="请输入量值溯源方式"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="检定/校准日期">
-                            <el-date-picker
+                            <el-date-picker :disabled="isReadonly"
                                 v-model="formData.calibration_date"
                                 type="date"
                                 placeholder="选择检定/校准日期"
@@ -284,24 +284,24 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="证书编号">
-                            <el-input v-model="formData.certificate_number" placeholder="请输入证书编号"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.certificate_number" placeholder="请输入证书编号"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="有效期">
-                            <el-input v-model="formData.validity_period" placeholder="请输入有效期"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.validity_period" placeholder="请输入有效期"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="检定/校准机构">
-                            <el-input v-model="formData.calibration_organization" placeholder="请输入检定/校准机构"></el-input>
+                            <el-input :disabled="isReadonly" v-model="formData.calibration_organization" placeholder="请输入检定/校准机构"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-form-item label="备注">
-                    <el-input
+                    <el-input :disabled="isReadonly"
                         v-model="formData.remarks"
                         type="textarea"
                         :rows="3"
@@ -309,7 +309,7 @@
                     ></el-input>
                 </el-form-item>
                 <el-form-item label="附件上传">
-                    <el-upload
+                    <el-upload :disabled="isReadonly"
                         ref="dialogUploadRef"
                         class="dialog-upload"
                         action=""
@@ -341,7 +341,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { ref, reactive, onMounted, computed, watch, inject } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
     Plus,
@@ -388,6 +388,8 @@ interface Equipment {
 const props = defineProps<{
     taskName: string;
 }>();
+
+const isReadonly = inject('isReadonly', false);
 
 // 响应式数据
 const tableData = ref<Equipment[]>([]);

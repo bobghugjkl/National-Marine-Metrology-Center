@@ -28,8 +28,45 @@ def get_original_records(current_user):
         # 构建查询
         query = OriginalRecords.query
 
-        # 非管理员只能查看自己创建的记录
-        if user_role != 'admin':
+        from models.user import User
+
+
+        # 权限控制
+
+
+        if user_role in ['super_admin', '管理员']:
+
+
+            pass
+
+
+        elif user_role in ['中心管理员', '项目管理员']:
+
+
+            curr_user_obj = User.query.get(user_id)
+
+
+            if curr_user_obj and curr_user_obj.company:
+
+
+                company_users = User.query.filter_by(company=curr_user_obj.company).all()
+
+
+                company_user_ids = [u.id for u in company_users]
+
+
+                query = query.filter(OriginalRecords.user_id.in_(company_user_ids))
+
+
+            else:
+
+
+                query = query.filter(OriginalRecords.user_id == user_id)
+
+
+        else:
+
+
             query = query.filter(OriginalRecords.user_id == user_id)
 
         # 按任务名称筛选（必须过滤，确保数据隔离）

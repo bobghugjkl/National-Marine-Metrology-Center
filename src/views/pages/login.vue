@@ -106,7 +106,15 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     localStorage.setItem('token', userData.token);  // ← 保存 JWT token（用于认证）
 
                     // 设置权限
-                    const keys = permiss.defaultList[userData.role === '管理员' || userData.role === 'super_admin' ? 'admin' : 'user'];
+                    let roleKey = 'user';
+                    if (userData.role === '管理员' || userData.role === 'super_admin') {
+                        roleKey = 'admin';
+                    } else if (userData.role === '中心管理员') {
+                        roleKey = 'center_admin';
+                    } else if (userData.role === '项目管理员') {
+                        roleKey = 'project_admin';
+                    }
+                    const keys = permiss.defaultList[roleKey] || permiss.defaultList['user'];
                     permiss.handleSet(keys);
 
                     // 记住密码
@@ -119,6 +127,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     // 根据角色跳转
                     if (userData.role === 'super_admin') {
                         router.push('/database-admin');
+                    } else if (userData.role === '中心管理员') {
+                        router.push('/center-admin-dashboard');
                     } else {
                         router.push('/dashboard');
                     }
