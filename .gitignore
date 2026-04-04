@@ -1,23 +1,35 @@
-.DS_Store
+# 忽略 Python 编译生成的缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 忽略 yarn 生成的依赖锁文件
+yarn.lock
+# 虚拟环境
+backend/venv/
+venv/
+# 可以继续添加其他需要忽略的文件/目录
+# 例如：忽略日志文件
+logs/
+*.log
+
+# 忽略环境配置文件（如本地开发的 .env）
+.env
+# 补充忽略递归的__pycache__目录
+**/__pycache__/
+
+# 忽略Node.js依赖目录
+node_modules/
 node_modules
-/dist
 
+# IDE/编辑器配置
+.idea/
+.vscode/
+*.swp
+*.swo
+# 本地数据库备份
+# *.sql
 
-# local env files
-.env.local
-.env.*.local
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# 系统文件
+.DS_Store
+Thumbs.db

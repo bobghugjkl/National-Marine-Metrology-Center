@@ -7,13 +7,22 @@ import 'nprogress/nprogress.css';
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/dashboard',
+        redirect: '/login',
     },
     {
         path: '/',
         name: 'Home',
         component: Home,
         children: [
+            {
+                path: '/database-admin',
+                name: 'database-admin',
+                meta: {
+                    title: '数据管理大屏',
+                    permiss: 'admin',
+                },
+                component: () => import(/* webpackChunkName: "database-admin" */ '../views/system/database-admin.vue'),
+            },
             {
                 path: '/dashboard',
                 name: 'dashboard',
@@ -24,13 +33,49 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "dashboard" */ '../views/dashboard.vue'),
             },
             {
+                path: '/center-admin-dashboard',
+                name: 'center-admin-dashboard',
+                meta: {
+                    title: '中心管理员首页',
+                    permiss: 'center_admin_home',
+                },
+                component: () => import(/* webpackChunkName: "center-admin-dashboard" */ '../views/system/center-admin-dashboard.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {
                     title: '用户管理',
                     permiss: '11',
                 },
-                component: () => import(/* webpackChunkName: "system-user" */ '../views/system/user.vue'),
+                component: () => import(/* webpackChunkName: "user" */ '../views/system/user.vue'),
+            },
+            {
+                path: '/task-manage',
+                name: 'task-manage',
+                meta: {
+                    title: '任务管理',
+                    permiss: 'task_manage',
+                },
+                component: () => import(/* webpackChunkName: "task-manage" */ '../views/VoyageInfo/task-manage.vue'),
+            },
+            {
+                path: '/user-profile',
+                name: 'user-profile',
+                meta: {
+                    title: '个人信息管理',
+                    permiss: '0',
+                },
+                component: () => import(/* webpackChunkName: "user-profile" */ '../views/system/user-profile.vue'),
+            },
+            {
+                path: '/task-detail/:task_name',
+                name: 'task-detail',
+                meta: {
+                    title: (route) => route.params.task_name || '任务详情',
+                    permiss: 'task_manage',
+                },
+                component: () => import(/* webpackChunkName: "task-detail" */ '../views/VoyageInfo/task-detail.vue'),
             },
             {
                 path: '/system-role',
@@ -39,7 +84,16 @@ const routes: RouteRecordRaw[] = [
                     title: '角色管理',
                     permiss: '12',
                 },
-                component: () => import(/* webpackChunkName: "system-role" */ '../views/system/role.vue'),
+                component: () => import(/* webpackChunkName: "inspection-task-list" */ '../views/system/role.vue'),
+            },
+            {
+                path: '/inspection-record/:task_name',
+                name: 'inspection-record',
+                meta: {
+                    title: '检查记录详情',
+                    permiss: 'task_manage',
+                },
+                component: () => import(/* webpackChunkName: "inspection-record" */ '../views/preVoyageInspection/inspection-record.vue'),
             },
             {
                 path: '/system-menu',
@@ -51,6 +105,42 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
             },
             {
+                path: '/expert-talent',
+                name: 'expert-talent',
+                meta: {
+                    title: '专家人才管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "expert-talent" */ '../views/system/expert-talent.vue'),
+            },
+            {
+                path: '/task-unit',
+                name: 'task-unit',
+                meta: {
+                    title: '任务单位管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "task-unit" */ '../views/system/task-unit.vue'),
+            },
+            {
+                path: '/investigation-personnel',
+                name: 'investigation-personnel',
+                meta: {
+                    title: '调查人员',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "investigation-personnel" */ '../views/system/investigation-personnel.vue'),
+            },
+            {
+                path: '/equipment-management',
+                name: 'equipment-management',
+                meta: {
+                    title: '仪器设备管理',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "equipment-management" */ '../views/system/equipment-management.vue'),
+            },
+            {
                 path: '/table',
                 name: 'basetable',
                 meta: {
@@ -60,13 +150,85 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "table" */ '../views/table/basetable.vue'),
             },
             {
-                path: '/preVoyageInspection/personnelQualifications',
-                name: 'prepersonnelQualifications',
+                path: '/preVoyageInspection/personnel-qualifications',
+                name: 'personnel-qualifications',
                 meta: {
-                    title: '人员资质',
-                    permiss: '31',
+                    title: '外业调查人员资质',
+                    permiss: 'task_manage',
                 },
-                component: () => import(/* webpackChunkName: "table" */ '../views//preVoyageInspection/personnelQualifications.vue'),
+                component: () => import(/* webpackChunkName: "personnel-qualifications" */ '../views/preVoyageInspection/personnel-qualifications-list.vue'),
+            },
+            {
+                path: '/preVoyageInspection/equipment',
+                name: 'equipment-list',
+                meta: {
+                    title: '仪器设备（工作计量器具）',
+                    permiss: 'task_manage',
+                },
+                component: () => import(/* webpackChunkName: "equipment-list" */ '../views/preVoyageInspection/equipment-list.vue'),
+            },
+            {
+                path: '/preVoyageInspection/investigation-projects',
+                name: 'investigation-list',
+                meta: {
+                    title: '外业调查项目/仪器比测统计表',
+                    permiss: 'task_manage',
+                },
+                component: () => import(/* webpackChunkName: "investigation-list" */ '../views/preVoyageInspection/investigation-list.vue'),
+            },
+            {
+                path: '/expert-personnel',
+                name: 'expert-personnel',
+                meta: {
+                    title: '专家人才',
+                    permiss: '5',
+                },
+                component: () => import(/* webpackChunkName: "expert-personnel" */ '../views/system/expert-personnel.vue'),
+            },
+            {
+                path: '/task-unit',
+                name: 'task-unit',
+                meta: {
+                    title: '任务单位',
+                    permiss: '6',
+                },
+                component: () => import(/* webpackChunkName: "task-unit" */ '../views/system/task-unit.vue'),
+            },
+            {
+                path: '/investigation-personnel',
+                name: 'investigation-personnel',
+                meta: {
+                    title: '调查人员',
+                    permiss: '7',
+                },
+                component: () => import(/* webpackChunkName: "investigation-personnel" */ '../views/system/investigation-personnel.vue'),
+            },
+            {
+                path: '/equipment',
+                name: 'equipment',
+                meta: {
+                    title: '仪器设备',
+                    permiss: '8',
+                },
+                component: () => import(/* webpackChunkName: "equipment" */ '../views/system/equipment.vue'),
+            },
+            {
+                path: '/task-info',
+                name: 'task-info',
+                meta: {
+                    title: '任务信息',
+                    permiss: '9',
+                },
+                component: () => import(/* webpackChunkName: "task-info" */ '../views/system/task-info.vue'),
+            },
+            {
+                path: '/clear-cache',
+                name: 'clear-cache',
+                meta: {
+                    title: '清除缓存',
+                    permiss: '0',
+                },
+                component: () => import(/* webpackChunkName: "clear-cache" */ '../views/system/clear-cache.vue'),
             },
             {
                 path: '/table-editor',
@@ -96,15 +258,6 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "echarts" */ '../views/chart/echarts.vue'),
             },
 
-            {
-                path: '/icon',
-                name: 'icon',
-                meta: {
-                    title: '图标',
-                    permiss: '5',
-                },
-                component: () => import(/* webpackChunkName: "icon" */ '../views/pages/icon.vue'),
-            },
             {
                 path: '/ucenter',
                 name: 'ucenter',
@@ -148,15 +301,6 @@ const routes: RouteRecordRaw[] = [
                     permiss: '33',
                 },
                 component: () => import(/* webpackChunkName: "import" */ '../views/table/import.vue'),
-            },
-            {
-                path: '/theme',
-                name: 'theme',
-                meta: {
-                    title: '主题设置',
-                    permiss: '7',
-                },
-                component: () => import(/* webpackChunkName: "theme" */ '../views/pages/theme.vue'),
             },
             {
                 path: '/calendar',
@@ -282,15 +426,37 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     NProgress.start();
-    const role = localStorage.getItem('vuems_name');
+
+    let role = null;
+    let token = null;
+
+    try {
+        role = localStorage.getItem('vuems_name');
+        token = localStorage.getItem('token');
+    } catch (e) {
+        console.warn('无法访问localStorage:', e);
+    }
+
     const permiss = usePermissStore();
 
-    if (!role && to.meta.noAuth !== true) {
+    console.log('路由守卫检查:', {
+        to: to.path,
+        from: from.path,
+        role,
+        token: token ? `${token.substring(0, 20)}...` : '无',
+        noAuth: to.meta.noAuth,
+        permiss: to.meta.permiss
+    });
+
+    if (!role && !token && to.meta.noAuth !== true) {
+        console.log('用户未登录，跳转到登录页');
         next('/login');
     } else if (typeof to.meta.permiss == 'string' && !permiss.key.includes(to.meta.permiss)) {
+        console.log('用户权限不足，跳转到403页面');
         // 如果没有权限，则进入403
         next('/403');
     } else {
+        console.log('路由守卫通过，继续访问');
         next();
     }
 });

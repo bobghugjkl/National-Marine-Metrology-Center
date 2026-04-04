@@ -2,7 +2,8 @@
     <div class="login-bg">
         <div class="login-container">
             <div class="login-header">
-                <img class="logo mr10" src="../../assets/img/logo.svg" alt="" />
+                <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                <el-icon class="icon-login"><User />  </el-icon>
                 <div class="login-title">系统登录</div>
             </div>
             <el-form :model="param" :rules="rules" ref="login" size="large">
@@ -34,7 +35,7 @@
                     <el-link type="primary" @click="$router.push('/reset-pwd')">忘记密码</el-link>
                 </div>
                 <el-button class="login-btn" type="primary" size="large" @click="submitForm(login)">登录</el-button>
-                <p class="login-tips">Tips : 用户名和密码随便填。</p>
+                <p class="login-tips">Tips : 请使用已注册的账号登录，或点击下方"立即注册"创建新账号。</p>
                 <p class="login-text">
                     没有账号？<el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
                 </p>
@@ -50,6 +51,9 @@ import { usePermissStore } from '@/store/permiss';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
+import { loginUser } from '@/api';
+import { User } from '@element-plus/icons-vue';
+
 
 interface LoginInfo {
     username: string;
@@ -78,22 +82,72 @@ const rules: FormRules = {
 };
 const permiss = usePermissStore();
 const login = ref<FormInstance>();
-const submitForm = (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid: boolean) => {
+    formEl.validate(async (valid: boolean) => {
         if (valid) {
-            ElMessage.success('登录成功');
-            localStorage.setItem('vuems_name', param.username);
-            const keys = permiss.defaultList[param.username == 'admin' ? 'admin' : 'user'];
-            permiss.handleSet(keys);
-            router.push('/');
-            if (checked.value) {
-                localStorage.setItem('login-param', JSON.stringify(param));
-            } else {
-                localStorage.removeItem('login-param');
+            try {
+                // 调用后端登录接口
+                const res = await loginUser({
+                    username: param.username,
+                    password: param.password
+                });
+
+                console.log('登录响应:', res);
+
+                if (res && res.code === 200) {
+                    ElMessage.success(res.message || '登录成功');
+
+                    // 存储用户信息
+                    const userData = res.data;
+                    localStorage.setItem('vuems_name', userData.username);
+                    localStorage.setItem('vuems_user', JSON.stringify(userData));
+                    localStorage.setItem('userId', userData.id);  // 保存用户ID（用于显示）
+                    localStorage.setItem('token', userData.token);  // ← 保存 JWT token（用于认证）
+
+                    // 设置权限
+                    let roleKey = 'user';
+                    if (userData.role === '管理员' || userData.role === 'super_admin') {
+                        roleKey = 'admin';
+                    } else if (userData.role === '中心管理员') {
+                        roleKey = 'center_admin';
+                    } else if (userData.role === '项目管理员') {
+                        roleKey = 'project_admin';
+                    }
+                    const keys = permiss.defaultList[roleKey] || permiss.defaultList['user'];
+                    permiss.handleSet(keys);
+
+                    // 记住密码
+                    if (checked.value) {
+                        localStorage.setItem('login-param', JSON.stringify(param));
+                    } else {
+                        localStorage.removeItem('login-param');
+                    }
+
+                    // 根据角色跳转
+                    if (userData.role === 'super_admin') {
+                        router.push('/database-admin');
+                    } else if (userData.role === '中心管理员') {
+                        router.push('/center-admin-dashboard');
+                    } else {
+                        router.push('/dashboard');
+                    }
+                } else {
+                    ElMessage.error(res?.message || '登录失败');
+                }
+            } catch (error: any) {
+                // 统一显示"用户名或密码不正确"
+                console.log('登录错误:', error);
+                let errorMsg = '用户名或密码不正确';
+                
+                if (error?.response?.data?.message) {
+                    errorMsg = error.response.data.message;
+                }
+                
+                ElMessage.error(errorMsg);
             }
         } else {
-            ElMessage.error('登录失败');
+            ElMessage.error('请填写完整信息');
             return false;
         }
     });
@@ -110,7 +164,14 @@ tabs.clearTabs();
     justify-content: center;
     width: 100%;
     height: 100vh;
-    background: url(../../assets/img/login-bg.jpg) center/cover no-repeat;
+    background: url(../../assets/img/login-bg1.png) center/cover no-repeat;
+}
+
+.icon-login {
+  /* 添加一些样式来美化图标 */
+  font-size: 24px;
+  color: #409EFF; /* Element主题蓝色 */
+  margin-right: 10px;
 }
 
 .login-header {

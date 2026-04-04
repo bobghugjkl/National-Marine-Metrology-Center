@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!-- 表格工具栏 -->
         <div class="table-toolbar" v-if="hasToolbar">
             <div class="table-toolbar-left">
                 <slot name="toolbarBtn"></slot>
@@ -35,11 +36,18 @@
                 </el-tooltip>
             </div>
         </div>
-        <el-table class="mgb20" :style="{ width: '100%' }" border :data="tableData" :row-key="rowKey"
-            @selection-change="handleSelectionChange" table-layout="auto">
+        
+        <!-- 表格容器：实现水平滚动的关键 -->
+        <!-- 当表格内容宽度超出此容器时，会自动出现水平滚动条 -->
+        <div class="table-container">
+            <el-table class="mgb20" :style="{ width: '100%' }" border :data="tableData" :row-key="rowKey"
+            @selection-change="handleSelectionChange" @row-click="handleRowClick" table-layout="auto">
             <template v-for="item in columns" :key="item.prop">
+                <!-- el-table-column 的 :fixed 属性是实现列固定的关键 -->
+                <!-- 直接使用 item.fixed 的值来设置固定列 -->
+                <!-- 例如：fixed: 'left' 用于序号列，fixed: 'right' 用于操作列 -->
                 <el-table-column v-if="item.visible" :prop="item.prop" :label="item.label" :width="item.width"
-                    :type="item.type" :align="item.align || 'center'">
+                    :type="item.type" :align="item.align || 'center'" :fixed="item.fixed">
 
                     <template #default="{ row, column, $index }" v-if="item.type === 'index'">
                         {{ getIndex($index) }}
@@ -47,15 +55,19 @@
                     <template #default="{ row, column, $index }" v-if="!item.type">
                         <slot :name="item.prop" :rows="row" :index="$index">
                             <template v-if="item.prop == 'operator'">
-                                <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
-                                    查看
-                                </el-button>
-                                <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
-                                    编辑
-                                </el-button>
-                                <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(row)">
-                                    删除
-                                </el-button>
+                                <div class="operator-buttons" @click.stop>
+                                    <slot name="operator" :rows="row">
+                                        <el-button type="warning" size="small" :icon="View" @click="viewFunc(row)">
+                                            查看
+                                        </el-button>
+                                        <el-button type="primary" size="small" :icon="Edit" @click="editFunc(row)">
+                                            编辑
+                                        </el-button>
+                                        <el-button type="danger" size="small" :icon="Delete" @click="delFunc(row)">
+                                            删除
+                                        </el-button>
+                                    </slot>
+                                </div>
                             </template>
                             <span v-else-if="item.formatter">
                                 {{ item.formatter(row[item.prop]) }}
@@ -67,7 +79,8 @@
                     </template>
                 </el-table-column>
             </template>
-        </el-table>
+            </el-table>
+        </div>
         <el-pagination v-if="hasPagination" :current-page="currentPage" :page-size="pageSize" :background="true"
             :layout="layout" :total="total" @current-change="handleCurrentChange" />
     </div>
@@ -141,6 +154,10 @@ const props = defineProps({
     changePage: {
         type: Function,
         default: () => { }
+    },
+    rowClickFunc: {
+        type: Function,
+        default: () => { }
     }
 })
 
@@ -173,6 +190,15 @@ const handleCurrentChange = (val: number) => {
     props.changePage(val)
 }
 
+// 行点击事件
+const handleRowClick = (row: any, column: any) => {
+    // 如果点击的是操作列，不触发跳转
+    if (column && column.property === 'operator') {
+        return;
+    }
+    props.rowClickFunc(row)
+}
+
 const handleDelete = (row) => {
     ElMessageBox.confirm('确定要删除吗？', '提示', {
         type: 'warning'
@@ -190,6 +216,20 @@ const getIndex = (index: number) => {
 </script>
 
 <style scoped>
+/* 表格容器样式：实现水平滚动的关键 */
+.table-container {
+    overflow-x: auto; /* 当内容超出容器宽度时，显示水平滚动条 */
+    width: 100%; /* 确保容器占据可用宽度 */
+    margin-bottom: 20px;
+}
+
+/* 响应式设计：当屏幕足够宽时，移除滚动条 */
+@media (min-width: 1300px) {
+    .table-container {
+        overflow-x: visible; /* 宽屏时移除水平滚动条 */
+    }
+}
+
 .table-toolbar {
     display: flex;
     justify-content: space-between;
@@ -202,6 +242,27 @@ const getIndex = (index: number) => {
     font-size: 18px;
     cursor: pointer;
     color: #676767;
+}
+
+.operator-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.operator-buttons .el-button {
+    margin: 0;
+}
+
+/* 表格行悬停样式 */
+:deep(.el-table tbody tr) {
+    cursor: pointer;
+}
+
+:deep(.el-table tbody tr:hover > td) {
+    background-color: #f5f7fa;
 }
 </style>
 <style>

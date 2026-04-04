@@ -10,7 +10,7 @@
         >
             <template v-for="item in filteredMenuData">
                 <template v-if="item.children">
-                    <el-sub-menu :index="item.index" :key="item.index" v-permiss="item.id">
+                    <el-sub-menu :index="item.index" :key="item.index" v-permiss="item.permiss || item.id">
                         <template #title>
                             <el-icon>
                                 <component :is="item.icon"></component>
@@ -22,7 +22,7 @@
                                 v-if="subItem.children"
                                 :index="subItem.index"
                                 :key="subItem.index"
-                                v-permiss="item.id"
+                                v-permiss="subItem.permiss || item.id"
                             >
                                 <template #title>{{ subItem.title }}</template>
                                 <el-menu-item
@@ -33,14 +33,14 @@
                                     {{ threeItem.title }}
                                 </el-menu-item>
                             </el-sub-menu>
-                            <el-menu-item v-else :index="subItem.index" v-permiss="item.id">
+                            <el-menu-item v-else :index="subItem.index" v-permiss="subItem.permiss || item.id">
                                 {{ subItem.title }}
                             </el-menu-item>
                         </template>
                     </el-sub-menu>
                 </template>
                 <template v-else>
-                    <el-menu-item :index="item.index" :key="item.index" v-permiss="item.id">
+                    <el-menu-item :index="item.index" :key="item.index" v-permiss="item.permiss || item.id">
                         <el-icon>
                             <component :is="item.icon"></component>
                         </el-icon>
@@ -57,21 +57,21 @@ import { computed } from 'vue';
 import { useSidebarStore } from '../store/sidebar';
 import { useRoute } from 'vue-router';
 import { menuData } from '@/components/menu';
+import { usePermissStore } from '../store/permiss';
 
-
-// Assume userPermissions is fetched from a store or API
-const userPermissions = [ '0', '01','02','03','1', '11', '12', '13','2' ,'21','22','23','24','25','26','27','28','29','3','31','32','33','34','4','41','42']; // Example permissions
+const permiss = usePermissStore();
 
 // Filter menuData based on user permissions
 const filteredMenuData = computed(() => {
   const filterMenu = (items: any[], permissions: string[]): any[] => {
     return items
       .filter((item) => {
-        // Include item if its ID is in permissions or it has permitted children
-        if (permissions.includes(item.id)) return true;
+        const itemPermiss = item.permiss || item.id;
+        // Include item if its ID/permiss is in permissions or it has permitted children
+        if (permissions.includes(itemPermiss)) return true;
         if (item.children) {
           const hasPermittedChildren = item.children.some((child: any) =>
-            permissions.includes(child.id) || (child.children && child.children.some((subChild: any) => permissions.includes(subChild.id)))
+            permissions.includes(child.permiss || child.id) || (child.children && child.children.some((subChild: any) => permissions.includes(subChild.permiss || subChild.id)))
           );
           return hasPermittedChildren;
         }
@@ -89,7 +89,7 @@ const filteredMenuData = computed(() => {
       });
   };
 
-  return filterMenu(menuData, userPermissions);
+  return filterMenu(menuData, permiss.key);
 });
 
 const route = useRoute();
@@ -115,7 +115,7 @@ const sidebar = useSidebarStore();
 }
 
 .sidebar-el-menu:not(.el-menu--collapse) {
-    width: 250px;
+    width: 180px;
 }
 
 .sidebar-el-menu {

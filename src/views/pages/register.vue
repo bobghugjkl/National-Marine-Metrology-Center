@@ -2,8 +2,10 @@
     <div class="login-bg">
         <div class="login-container">
             <div class="login-header">
-                <img class="logo mr10" src="../../assets/img/logo.svg" alt="" />
-                <div class="login-title">后台管理系统</div>
+               <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                 <!--<img class="logo mr10" src="../../assets/img/logo.svg" alt="" />-->
+                <el-icon class="icon-login"><User  />  </el-icon>
+                <div class="login-title">用户注册</div>
             </div>
             <el-form :model="param" :rules="rules" ref="register" size="large">
                 <el-form-item prop="username">
@@ -20,6 +22,15 @@
                         <template #prepend>
                             <el-icon>
                                 <Message />
+                            </el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item prop="company">
+                    <el-input v-model="param.company" placeholder="公司名称">
+                        <template #prepend>
+                            <el-icon>
+                                <OfficeBuilding />
                             </el-icon>
                         </template>
                     </el-input>
@@ -52,12 +63,15 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { Register } from '@/types/user';
+import { registerUser } from '@/api';
+import { User, Lock, Message, OfficeBuilding, Right } from '@element-plus/icons-vue';
 
 const router = useRouter();
-const param = reactive<Register>({
+const param = reactive({
     username: '',
     password: '',
     email: '',
+    company: '',
 });
 
 const rules: FormRules = {
@@ -68,17 +82,51 @@ const rules: FormRules = {
             trigger: 'blur',
         },
     ],
-    password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+    password: [
+        { 
+            required: true, 
+            message: '请输入密码', 
+            trigger: 'blur' 
+        },
+        {
+            min: 6,
+            message: '密码长度至少6位',
+            trigger: 'blur'
+        }
+    ],
     email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
+    company: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
 };
+
 const register = ref<FormInstance>();
-const submitForm = (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid: boolean) => {
+    formEl.validate(async (valid: boolean) => {
         if (valid) {
-            ElMessage.success('注册成功，请登录');
-            router.push('/login');
+            try {
+                // 调用后端注册接口
+                const res = await registerUser({
+                    username: param.username,
+                    password: param.password,
+                    login_name: param.username,  // 使用用户名作为登录名
+                    department: '未分配',
+                    company: param.company,
+                    email: param.email
+                });
+
+                console.log('注册响应:', res);
+
+                if (res && res.code === 200) {
+                    ElMessage.success(res.message || '注册成功，请登录');
+                    router.push('/login');
+                } else {
+                    ElMessage.error(res?.message || '注册失败');
+                }
+            } catch (error: any) {
+                ElMessage.error(error.response?.data?.message || '注册失败，请重试');
+            }
         } else {
+            ElMessage.error('请填写完整信息');
             return false;
         }
     });
@@ -110,6 +158,13 @@ const submitForm = (formEl: FormInstance | undefined) => {
     font-size: 22px;
     color: #333;
     font-weight: bold;
+}
+
+.icon-login {
+  /* 添加一些样式来美化图标 */
+  font-size: 24px;
+  color: #409EFF; /* Element主题蓝色 */
+  margin-right: 10px;
 }
 
 .login-container {
